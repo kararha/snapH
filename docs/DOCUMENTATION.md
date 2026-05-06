@@ -1,54 +1,129 @@
-# SnapHeic: The Internal Guide
+# SnapHeic: Technical Documentation
 
-If you're reading this, you're probably looking to understand how I actually put this thing together. I wanted to keep this guide detailed but honest—no corporate fluff, just a straight-up explanation of how the app works.
+SnapHeic is a "zero-trust" browser-based HEIC to JPEG/PNG converter. This document provides a detailed technical explanation of the codebase, including functions, variables, and architectural decisions, to help developers understand and extend the application.
+
+---
+
+## 1. Architecture Overview
+
+SnapHeic is built as a Single Page Application (SPA) using modern web technologies:
+- **React 19**: Manages the UI and the "conversion queue" state.
+- **Vite**: Provides a fast development environment and optimized builds.
+- **Tailwind CSS v4**: Handles styling with a utility-first approach.
+- **Framer Motion**: Powers smooth UI transitions and animations.
+- **heic2any**: The core engine that performs HEIC/HEIF decoding and re-encoding entirely in the browser.
+- **Lucide React**: Provides the iconography.
 
 ---
 
-## 1. The Core Idea
-I built SnapHeic to be a "zero-trust" tool. I don't trust random websites with my photos, and I don't expect you to trust me either. That’s why the whole app is built to run entirely in your browser. There is no server, no database, and no tracking.
+## 2. Core Types and Interfaces
 
-## 2. What it actually does
-At its heart, it’s a file converter. It takes `.heic` or `.heif` files (the ones iPhones create) and turns them into `.jpg` or `.png` so you can actually use them on Windows or Linux.
+Defined in `src/App.tsx`, these types ensure type safety across the conversion process.
 
-- **Local only:** I used `heic2any` to handle the heavy decoding work right in the browser.
-- **Batch mode:** I made it so you can grab a bunch of files at once, because converting one by one is a pain.
-- **Simple UI:** It’s built to be fast. Drop, convert, download, done.
+### `ConversionFormat`
+```typescript
+type ConversionFormat = 'image/jpeg' | 'image/png';
+```
+Defines the supported output image formats.
 
-## 3. The Tech Bits (Why I chose these)
+### `ConversionStatus`
+```typescript
+type ConversionStatus = 'idle' | 'converting' | 'completed' | 'error';
+```
+Tracks the lifecycle of a file in the queue.
 
-- **React 19:** It’s the latest version, and it handles the complex state of a "conversion queue" really well without getting messy.
-- **Vite:** Honestly, because it’s fast. The dev server starts instantly and the builds are tiny.
-- **Tailwind CSS v4:** I love being able to style things directly in the code. It makes the UI feel consistent without me having to maintain a separate massive CSS file.
-- **Framer Motion:** I added this for the "vibe." It makes the lists and errors feel smooth rather than just popping in and out.
-- **heic2any:** This is the engine. It's a bit heavy on memory, but it’s the best way I found to do high-quality HEIC conversion without a backend.
-
-## 4. How the conversion logic works
-
-This is the part that took some thinking to get right:
-
-1. **Getting the files:** I use the standard HTML5 File API. When you drop files, the app catches them as "Blobs."
-2. **Safety checks:** I set a 50MB limit per file. Why? Because `heic2any` can be a memory hog. If you try to convert a 200MB file in a browser tab, there's a good chance the browser will just crash.
-3. **The Queue:** Every file gets a unique ID and is added to the React state. I create a "local URL" using `URL.createObjectURL` so we can track the file during the session.
-4. **The heavy lifting:** When you hit convert, `heic2any` kicks in. It decodes the Apple format and re-encodes it to your choice. This happens in a "promise," so it doesn't block the UI.
-5. **The Download:** Once it's done, I create another local URL for the finished image. When you click download, I just trigger a hidden link to save that URL to your computer.
-6. **Cleanup:** This is important. Every time you remove an item, I "revoke" those local URLs. If I didn't, the app would keep eating up your RAM until you closed the tab.
-
-## 5. Want to change something?
-
-### Adding a new language
-I put all the text in `src/translations.ts`. If you want to add a language:
-1. Open that file and copy the `en` block.
-2. Translate the strings.
-3. Add a button in `App.tsx` header to switch to it. It’s that simple.
-
-### Running it yourself
-If you’ve got Node.js installed, it’s just:
-1. `npm install` to get the dependencies.
-2. `npm run dev` to see it in action.
-3. `npm run build` if you want to host it yourself.
-
-## 6. A note on Privacy
-I designed this so that if you disconnect your internet after loading the page, the converter will *still work*. That is the ultimate proof that your data isn't going anywhere. 
+### `ConversionItem`
+The main interface representing a file in the conversion queue:
+- `id`: A unique string identifier.
+- `file`: The original `File` object from the user's device.
+- `previewUrl`: A temporary URL (`blob:`) used for internal reference.
+- `status`: The current `ConversionStatus`.
+- `progress`: A number (0-100) representing conversion progress.
+- `resultBlob`: The final converted `Blob` (available after completion).
+- `resultUrl`: A temporary URL (`blob:`) for the converted image.
+- `error`: A string containing the error message if conversion fails.
+- `format`: The target `ConversionFormat`.
 
 ---
-Written by Karar Haider. Feel free to use this, break it, or make it better.
+
+## 3. Main Component State (`App.tsx`)
+
+The application state is managed using React's `useState` and `useRef` hooks:
+
+- **`lang`**: (`Language`) Current UI language ('en' or 'ar').
+- **`view`**: (`View`) Tracks whether the user is on the 'converter' or 'privacy' screen.
+- **`items`**: (`ConversionItem[]`) The main queue of files to be converted.
+- **`globalFormat`**: (`ConversionFormat`) The target format selected in the header for all new files.
+- **`isDragging`**: (`boolean`) Tracks if a user is currently dragging files over the upload zone.
+- **`validationError`**: (`string | null`) Stores temporary error messages for invalid file uploads (e.g., too large).
+- **`fileInputRef`**: (`useRef<HTMLInputElement>`) A reference to the hidden file input used for the "browse" functionality.
+
+---
+
+## 4. Key Functions
+
+### `addFiles(files: FileList | File[])`
+Processes newly selected or dropped files.
+- **Filtering**: Filters for files ending in `.heic` or `.heif` and enforces a **50MB size limit** to prevent browser memory exhaustion.
+- **Validation**: If files are rejected, it sets `validationError` for 4 seconds.
+- **Item Creation**: Generates a unique ID and a temporary Object URL for each valid file, then adds them to the `items` state.
+
+### `onDrop`, `onDragOver`, `onDragLeave`
+Event handlers for the drag-and-drop interface. `onDrop` extracts the files from `dataTransfer` and passes them to `addFiles`.
+
+### `removeItem(id: string)`
+Removes a specific file from the queue.
+- **Cleanup**: Crucially calls `URL.revokeObjectURL()` for both the `previewUrl` and `resultUrl` to free up browser memory.
+
+### `convertItem(id: string)`
+The core conversion logic for a single item.
+1. Sets the item status to `converting`.
+2. Calls `heic2any` with the file blob, target format, and a quality setting (0.9).
+3. On success: Creates a result Object URL and updates the item status to `completed`.
+4. On failure: Catches the error, sanitizes the message for the UI, and sets the status to `error`.
+
+### `convertAll()`
+An asynchronous function that identifies all 'idle' or 'error' items in the queue and runs `convertItem` on each using `Promise.all`.
+
+### `downloadItem(item: ConversionItem)`
+Triggers a browser download for a completed conversion.
+- **Sanitization**: It cleans the original filename (replacing special characters with underscores) and ensures the correct file extension (`.jpg` or `.png`) is applied.
+- **Execution**: Uses a hidden `<a>` tag with the `download` attribute.
+
+### `downloadAll()`
+Iterates through all `items` and calls `downloadItem` for every item with a `completed` status.
+
+---
+
+## 5. Components and UI
+
+### `SnapHeicLogo`
+A visual component that renders the application logo with a custom CSS/Motion animation (a "shimmer" effect).
+
+### `HowItWorks` (`src/components/HowItWorks.tsx`)
+A presentational component that displays the 5-step process of how SnapHeic works. It uses the translation system to show content in the selected language.
+
+### `PrivacyPolicy` (`src/components/PrivacyPolicy.tsx`)
+Displays the privacy commitment and technical architecture notes. It explains the "zero-trust" model and provides a "Back" button to return to the converter.
+
+---
+
+## 6. Translation System (`src/translations.ts`)
+
+SnapHeic supports English (EN) and Arabic (AR) natively.
+
+- **Structure**: A `translations` object contains keys for each language.
+- **Access**: The `App` component retrieves the current strings using `translations[lang]`.
+- **Directionality**: The application dynamically switches between Left-to-Right (LTR) and Right-to-Left (RTL) layouts using the `dir` attribute on the root container based on the selected language.
+
+---
+
+## 7. Technical Considerations & Safety
+
+- **Memory Management**: Since the app creates `blob:` URLs for every file and its result, it must manually manage memory. The app calls `URL.revokeObjectURL()` whenever an item is removed or the queue is cleared.
+- **File Size Security**: HEIC decoding is computationally expensive and memory-intensive. The **50MB limit** is a safety measure to prevent the browser tab from crashing on lower-end devices.
+- **Filename Sanitization**: When downloading, filenames are sanitized using a Regular Expression (`/[^a-zA-Z0-9_\-\.]/g`) to ensure compatibility across different operating systems and prevent malformed file saves.
+- **Zero-Trust Implementation**: No external APIs or backends are used. The `heic2any` library runs entirely in the browser's JavaScript engine (Web Workers are used internally by the library for performance).
+
+---
+*Last updated: May 2026*
