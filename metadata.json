@@ -1,0 +1,6 @@
+{
+  "name": "SnapHeic",
+  "description": "A lightning-fast, privacy-focused HEIC to JPEG/PNG converter that runs entirely in your browser.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}

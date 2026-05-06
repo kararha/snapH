@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+@layer base {
+  body {
+    @apply bg-[#F4F4F2] text-[#1A1A1A] font-sans antialiased;
+  }
+}
+
+@layer components {
+  .technical-border {
+    @apply border-2 border-[#1A1A1A] shadow-[4px_4px_0px_0px_rgba(26,26,26,1)];
+  }
+  
+  .mono-label {
+    @apply font-mono text-[10px] uppercase tracking-wider opacity-60;
+  }
+}
