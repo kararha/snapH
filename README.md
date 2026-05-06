@@ -52,7 +52,8 @@ If you want to host SnapHEIC locally or deploy your own copy:
 
 **1. Clone the repo**
 ```bash
-cd snapheic
+git clone https://github.com/kararha/snapH.git
+cd snapH
 ```
 
 **2. Install dependencies**
@@ -132,4 +133,4 @@ Apache-2.0 — use it, fork it, improve it. A mention or a star is always apprec
 
 ---
 
-*Built by [Karar Haider](https://github.com/Antigravity)*
+*Built by [Karar Haider](https://github.com/kararha) · [View on GitHub](https://github.com/kararha/snapH)*
