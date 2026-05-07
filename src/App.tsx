@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import heic2any from 'heic2any';
+import JSZip from 'jszip';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { translations, Language } from './translations';
 
@@ -172,10 +173,31 @@ export default function App() {
     link.click();
   };
 
-  const downloadAll = () => {
-    items.forEach(item => {
-      if (item.status === 'completed') downloadItem(item);
+  const downloadAll = async () => {
+    const completedItems = items.filter(i => i.status === 'completed' && i.resultBlob);
+    if (completedItems.length === 0) return;
+
+    if (completedItems.length === 1) {
+      downloadItem(completedItems[0]);
+      return;
+    }
+
+    const zip = new JSZip();
+    completedItems.forEach(item => {
+      const extension = item.format === 'image/jpeg' ? 'jpg' : 'png';
+      const sanitizedName = item.file.name
+        .replace(/[^a-zA-Z0-9_\-\.]/g, '_')
+        .replace(/\.(heic|heif)$/i, `.${extension}`);
+      zip.file(sanitizedName, item.resultBlob!);
     });
+
+    const content = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(content);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `snapheic_converted_${Date.now()}.zip`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   return (

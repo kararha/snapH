@@ -25,7 +25,7 @@ So I built my own. It's a simple web app that converts HEIC and HEIF images enti
 
 ---
 
-## 📱 PWA Support
+##  PWA Support
 
 SnapHeic is a Progressive Web App. This means you can "install" it on your device (Desktop, iOS, or Android) and it will work entirely offline. Since the conversion happens on your local machine, no internet connection is required once the app is loaded.
 
