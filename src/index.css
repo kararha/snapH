@@ -12,8 +12,8 @@
 }
 
 @layer components {
-  .technical-border {
-    @apply border border-black;
+  .neubrutal-box {
+    @apply border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white rounded-none;
   }
   
   .mono-label {

@@ -17,7 +17,7 @@ export const PrivacyPolicy: React.FC<PolicyProps> = ({ onBack, lang }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="bg-white technical-border p-8 md:p-12"
+      className="neubrutal-box p-8 md:p-12"
       dir={lang === 'ar' ? 'rtl' : 'ltr'}
     >
       <button 
@@ -48,12 +48,12 @@ export const PrivacyPolicy: React.FC<PolicyProps> = ({ onBack, lang }) => {
           </section>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
-            <div className="bg-[#F4F4F2] p-6 technical-border !shadow-none cursor-default hover:border-black transition-colors">
+            <div className="p-6 neubrutal-box cursor-default hover:bg-black hover:text-white transition-colors">
               <Lock className="mb-4" />
               <h3 className="font-bold mb-2">{t.zeroDataCollection}</h3>
               <p className="text-xs opacity-60">{t.zeroDataDesc}</p>
             </div>
-            <div className="bg-[#F4F4F2] p-6 technical-border !shadow-none cursor-default hover:border-black transition-colors">
+            <div className="p-6 neubrutal-box cursor-default hover:bg-black hover:text-white transition-colors">
               <Globe className="mb-4" />
               <h3 className="font-bold mb-2">{t.localProcessing}</h3>
               <p className="text-xs opacity-60">{t.localProcessingDesc}</p>

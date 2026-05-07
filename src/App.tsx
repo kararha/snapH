@@ -213,7 +213,7 @@ export default function App() {
         </div>
         
         {view === 'converter' && (
-          <div className="flex items-center gap-4 bg-white p-3 border border-black">
+          <div className="flex items-center gap-4 p-3 neubrutal-box">
             <div className="flex flex-col gap-1">
               <span className="mono-label">{t.outputFormat}</span>
               <select 
@@ -239,7 +239,7 @@ export default function App() {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="bg-white border-b border-black p-3 flex items-center gap-2 overflow-hidden mb-4"
+                  className="p-3 flex items-center gap-2 overflow-hidden mb-4 neubrutal-box"
                 >
                   <AlertCircle size={14} className="text-black" />
                   <span className="mono-label text-black opacity-100 lowercase font-bold">{validationError}</span>
@@ -253,7 +253,7 @@ export default function App() {
               onDragLeave={onDragLeave}
               onClick={() => fileInputRef.current?.click()}
               className={`
-                relative h-[400px] border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white flex flex-col items-center justify-center gap-6 cursor-pointer transition-all
+                relative h-[400px] flex flex-col items-center justify-center gap-6 cursor-pointer transition-all neubrutal-box
                 ${isDragging ? 'bg-black/5' : 'hover:bg-black/[0.02]'}
               `}
             >
@@ -327,7 +327,7 @@ export default function App() {
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.98 }}
-                    className="flex items-center justify-between bg-white p-3 border border-black gap-4 group"
+                    className="flex items-center justify-between p-3 gap-4 group neubrutal-box"
                   >
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       <div className="w-10 h-10 bg-black/5 flex items-center justify-center shrink-0 border border-black/10">
@@ -403,7 +403,7 @@ export default function App() {
               </AnimatePresence>
 
               {items.length === 0 && (
-                <div className="h-[200px] flex items-center justify-center border border-dashed border-black">
+                <div className="h-[200px] flex items-center justify-center neubrutal-box">
                   <span className="text-black font-bold text-sm uppercase tracking-widest">QUEUE IS EMPTY</span>
                 </div>
               )}

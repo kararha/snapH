@@ -9,7 +9,7 @@ interface Props {
 export const HowItWorks: React.FC<Props> = ({ lang }) => {
   const t = translations[lang];
   return (
-    <div className="bg-white p-6 technical-border space-y-4">
+    <div className="p-6 neubrutal-box space-y-4">
       <h3 className="font-bold text-lg tracking-tighter">{t.howItWorks}</h3>
       <ul className="space-y-3">
         {[t.step1, t.step2, t.step3, t.step4, t.step5].map((item, i) => (
@@ -20,7 +20,7 @@ export const HowItWorks: React.FC<Props> = ({ lang }) => {
         ))}
       </ul>
       <div className="mt-4 pt-4 border-t border-black/10">
-        <p className="text-xs font-mono opacity-80 bg-black/5 p-2 rounded">
+        <p className="text-xs font-mono opacity-80 bg-black/5 p-2">
           {t.iphoneNote}
         </p>
       </div>
