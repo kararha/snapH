@@ -253,7 +253,7 @@ export default function App() {
               onDragLeave={onDragLeave}
               onClick={() => fileInputRef.current?.click()}
               className={`
-                relative h-[400px] border border-black bg-white flex flex-col items-center justify-center gap-6 cursor-pointer transition-all
+                relative h-[400px] border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white flex flex-col items-center justify-center gap-6 cursor-pointer transition-all
                 ${isDragging ? 'bg-black/5' : 'hover:bg-black/[0.02]'}
               `}
             >
