@@ -12,11 +12,11 @@
 }
 
 @layer components {
-  .neubrutal-box {
-    @apply border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white rounded-none;
+  .technical-border {
+    @apply border-2 border-[#1A1A1A] shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] bg-white rounded-none;
   }
   
   .mono-label {
-    @apply font-mono text-[10px] uppercase tracking-wider text-black;
+    @apply font-mono text-[10px] uppercase tracking-wider opacity-60 text-[#1A1A1A];
   }
 }

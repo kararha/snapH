@@ -17,23 +17,23 @@ export const PrivacyPolicy: React.FC<PolicyProps> = ({ onBack, lang }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="neubrutal-box p-8 md:p-12"
+      className="technical-border p-8 md:p-12"
       dir={lang === 'ar' ? 'rtl' : 'ltr'}
     >
       <button 
         onClick={onBack}
-        className="flex items-center gap-2 mb-8 mono-label hover:text-black transition-colors group"
+        className="flex items-center gap-2 mb-8 mono-label hover:opacity-100 transition-opacity group"
       >
         <ArrowLeft size={16} className={`transition-transform ${lang === 'ar' ? 'group-hover:translate-x-1 rotate-180' : 'group-hover:-translate-x-1'}`} />
         {t.returnToConverter}
       </button>
 
       <div className="max-w-3xl">
-        <div className="inline-flex items-center gap-2 px-3 py-1 bg-black text-white text-[10px] font-mono tracking-widest uppercase mb-6">
+        <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#1A1A1A] text-white text-[10px] font-mono tracking-widest uppercase mb-6">
           <ShieldCheck size={14} /> {t.securityArchitecture}
         </div>
         
-        <h2 className="text-4xl font-bold tracking-tighter mb-6 underline decoration-4 decoration-black/10 underline-offset-8">
+        <h2 className="text-4xl font-bold tracking-tighter mb-6 underline decoration-4 decoration-[#1A1A1A]/10 underline-offset-8">
           {t.privacyPolicy}
         </h2>
 
@@ -48,12 +48,12 @@ export const PrivacyPolicy: React.FC<PolicyProps> = ({ onBack, lang }) => {
           </section>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
-            <div className="p-6 neubrutal-box cursor-default hover:bg-black hover:text-white transition-colors">
+            <div className="p-6 technical-border !shadow-none bg-[#F4F4F2] cursor-default hover:border-[#1A1A1A] transition-colors">
               <Lock className="mb-4" />
               <h3 className="font-bold mb-2">{t.zeroDataCollection}</h3>
               <p className="text-xs opacity-60">{t.zeroDataDesc}</p>
             </div>
-            <div className="p-6 neubrutal-box cursor-default hover:bg-black hover:text-white transition-colors">
+            <div className="p-6 technical-border !shadow-none bg-[#F4F4F2] cursor-default hover:border-[#1A1A1A] transition-colors">
               <Globe className="mb-4" />
               <h3 className="font-bold mb-2">{t.localProcessing}</h3>
               <p className="text-xs opacity-60">{t.localProcessingDesc}</p>
@@ -64,7 +64,7 @@ export const PrivacyPolicy: React.FC<PolicyProps> = ({ onBack, lang }) => {
             <HowItWorks lang={lang} />
           </section>
 
-          <section className="border-t border-black/10 pt-8 mt-12">
+          <section className="border-t border-[#1A1A1A]/10 pt-8 mt-12">
             <p className="mono-label leading-normal">
               {t.tagline}
             </p>
