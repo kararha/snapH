@@ -75,7 +75,7 @@ export default function App() {
     });
 
     if (validHeicFiles.length < allFiles.length) {
-      setValidationError("Some files skipped: Only HEIC/HEIF under 50MB allowed.");
+      setValidationError(t.filesSkipped);
       setTimeout(() => setValidationError(null), 4000);
     }
 
@@ -91,7 +91,7 @@ export default function App() {
     }));
 
     setItems(prev => [...prev, ...newItems]);
-  }, [globalFormat]);
+  }, [globalFormat, t]);
 
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -235,7 +235,7 @@ export default function App() {
         </div>
         
         {view === 'converter' && (
-          <div className="flex items-center gap-4 p-3 neubrutal-box">
+          <div className="flex items-center gap-4 p-3 technical-border">
             <div className="flex flex-col gap-1">
               <span className="mono-label">{t.outputFormat}</span>
               <select 
@@ -261,7 +261,7 @@ export default function App() {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="p-3 flex items-center gap-2 overflow-hidden mb-4 neubrutal-box"
+                  className="p-3 flex items-center gap-2 overflow-hidden mb-4 technical-border"
                 >
                   <AlertCircle size={14} className="text-black" />
                   <span className="mono-label text-black opacity-100 lowercase font-bold">{validationError}</span>
@@ -275,7 +275,7 @@ export default function App() {
               onDragLeave={onDragLeave}
               onClick={() => fileInputRef.current?.click()}
               className={`
-                relative h-[400px] flex flex-col items-center justify-center gap-6 cursor-pointer transition-all neubrutal-box
+                relative h-[400px] flex flex-col items-center justify-center gap-6 cursor-pointer transition-all technical-border
                 ${isDragging ? 'bg-black/5' : 'hover:bg-black/[0.02]'}
               `}
             >
@@ -289,8 +289,8 @@ export default function App() {
               />
               <Upload size={32} strokeWidth={1} className="text-black" />
               <div className="text-center flex flex-col items-center">
-                <h2 className="font-bold text-xl tracking-tight mb-2 text-black">Select HEIC Files</h2>
-                <p className="text-sm text-black/60 mb-6">Drag and drop or click to browse.</p>
+                <h2 className="font-bold text-xl tracking-tight mb-2 text-black">{t.dropFiles}</h2>
+                <p className="text-sm text-black/60 mb-6">{t.dropFilesSubtitle}</p>
                 <button 
                   className="bg-black text-white font-bold text-xs uppercase px-6 py-3 tracking-wider hover:bg-black/90 transition-colors"
                   onClick={(e) => {
@@ -298,7 +298,7 @@ export default function App() {
                     fileInputRef.current?.click();
                   }}
                 >
-                  BROWSE FILES
+                  {t.browseFiles}
                 </button>
               </div>
             </div>
@@ -307,7 +307,7 @@ export default function App() {
           {/* Right Column: Queue */}
           <div className="flex flex-col">
             <div className="border-b border-black pb-3 mb-4 flex justify-between items-end">
-              <h2 className="font-bold text-sm uppercase tracking-widest text-black">CONVERSION QUEUE ({items.length})</h2>
+              <h2 className="font-bold text-sm uppercase tracking-widest text-black">{t.queueTitle} ({items.length})</h2>
               {items.length > 0 && (
                 <div className="flex gap-4">
                   <button 
@@ -315,14 +315,14 @@ export default function App() {
                     disabled={items.every(i => i.status === 'completed' || i.status === 'converting')}
                     className="text-[10px] font-bold font-mono uppercase text-black hover:underline disabled:opacity-30"
                   >
-                    Convert All
+                    {t.convertAll}
                   </button>
                   <button 
                     onClick={downloadAll}
                     disabled={!items.some(i => i.status === 'completed')}
                     className="text-[10px] font-bold font-mono uppercase text-black hover:underline disabled:opacity-30"
                   >
-                    Download All
+                    {t.downloadAll}
                   </button>
                   <button 
                     onClick={() => {
@@ -334,7 +334,7 @@ export default function App() {
                     }}
                     className="text-[10px] font-mono uppercase text-black/50 hover:text-black transition-colors"
                   >
-                    Clear
+                    {t.clearQueue}
                   </button>
                 </div>
               )}
@@ -349,7 +349,7 @@ export default function App() {
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.98 }}
-                    className="flex items-center justify-between p-3 gap-4 group neubrutal-box"
+                    className="flex items-center justify-between p-3 gap-4 group technical-border"
                   >
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       <div className="w-10 h-10 bg-black/5 flex items-center justify-center shrink-0 border border-black/10">
@@ -425,7 +425,7 @@ export default function App() {
               </AnimatePresence>
 
               {items.length === 0 && (
-                <div className="h-[200px] flex items-center justify-center neubrutal-box">
+                <div className="h-[200px] flex items-center justify-center technical-border">
                   <span className="text-black font-bold text-sm uppercase tracking-widest">QUEUE IS EMPTY</span>
                 </div>
               )}
