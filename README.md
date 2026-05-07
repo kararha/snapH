@@ -1,6 +1,6 @@
-# SnapHEIC — Convert iPhone Photos Without the Hassle
+# SnapHEIC — Private iPhone Photo Converter
 
-> *A fast, private, browser-based HEIC/HEIF converter. No uploads. No servers. Just you and your photos.*
+> *A fast, private, offline-capable HEIC/HEIF converter. No uploads. No servers. Just you and your photos.*
 
 ![SnapHEIC main interface](./docs/screenshot-main.png)
 
@@ -19,8 +19,15 @@ So I built my own. It's a simple web app that converts HEIC and HEIF images enti
 - **Batch processing** — drag and drop a whole folder worth of photos and convert them all at once
 - **Individual controls** — convert or download files one at a time if you prefer
 - **English + Arabic** — full bilingual support with proper RTL layout for Arabic users
+- **Offline-First (PWA)** — Install it as an app and use it without an internet connection
 - **50MB per file limit** — keeps your browser happy and prevents memory issues
 - **Auto-cleanup** — object URLs are revoked the moment you're done, so nothing lingers
+
+---
+
+## 📱 PWA Support
+
+SnapHeic is a Progressive Web App. This means you can "install" it on your device (Desktop, iOS, or Android) and it will work entirely offline. Since the conversion happens on your local machine, no internet connection is required once the app is loaded.
 
 ---
 
@@ -36,13 +43,9 @@ The converter lives on a single clean page. You get a "How it works" section up 
 
 ![Arabic version with RTL layout](./docs/screenshot-arabic.png)
 
-Switch to Arabic with one click — the entire UI flips to right-to-left, including the layout, the text, and even the button positions. It's not a half-baked translation; it's a proper localized experience.
-
 ### Privacy Policy
 
 ![Privacy policy page](./docs/screenshot-privacy.png)
-
-I wrote an honest privacy policy because I think users deserve to know what's happening with their data. (Spoiler: nothing is happening, because nothing leaves your computer.) You can read it in the app's footer.
 
 ---
 
@@ -66,13 +69,11 @@ npm install
 npm run dev
 ```
 
-Then open **http://localhost:3000** in your browser. That's it.
-
 **To build for production:**
 ```bash
 npm run build
 ```
-The output goes into `dist/` — you can host that folder anywhere (Vercel, Netlify, GitHub Pages, your own server).
+The output goes into `dist/` — you can host that folder anywhere.
 
 ---
 
@@ -82,15 +83,20 @@ The output goes into `dist/` — you can host that folder anywhere (Vercel, Netl
 snapheic/
 ├── src/
 │   ├── App.tsx                  # Main app — all the converter logic lives here
-│   ├── main.tsx                 # React entry point
+│   ├── main.tsx                 # React entry point & PWA registration
 │   ├── index.css                # Global styles
 │   ├── translations.ts          # English and Arabic strings
 │   └── components/
 │       ├── HowItWorks.tsx       # The "how it works" checklist panel
 │       └── PrivacyPolicy.tsx    # The privacy policy view
-├── docs/                        # Screenshots for this README
-├── index.html                   # Vite HTML entry point
-├── vite.config.ts               # Vite configuration
+├── docs/                        
+│   ├── DOCUMENTATION.md         # Detailed technical guide
+│   ├── STYLE_GUIDE.md           # Visual identity & design system
+│   ├── TROUBLESHOOTING.md       # Memory & error help
+│   └── screenshot-main.png      # App screenshots
+├── index.html                   # Vite HTML entry point (SEO optimized)
+├── vite.config.ts               # Vite & PWA configuration
+├── CONTRIBUTING.md              # Community contribution guide
 ├── tsconfig.json                # TypeScript config
 └── package.json
 ```
@@ -99,23 +105,16 @@ snapheic/
 
 ## Tech stack
 
-I kept this deliberately simple. No over-engineering.
-
 | Tool | Version | Why |
 |---|---|---|
-| **React** | 19 | The UI framework. Used the new compiler-era React. |
-| **TypeScript** | ~5.8 | Type safety keeps the conversion logic clean. |
+| **React** | 19 | The UI framework. |
+| **TypeScript** | ~5.8 | Type safety for conversion logic. |
 | **Vite** | 6 | Fast dev server and build tool. |
-| **Tailwind CSS** | v4 | Utility-first styling. The v4 Vite plugin makes it painless. |
-| **heic2any** | 0.0.4 | The actual workhorse — pure JS HEIC-to-JPEG/PNG conversion. |
-| **Framer Motion** | (via `motion`) | Smooth animations for file list transitions and drag states. |
+| **Tailwind CSS** | v4 | Utility-first styling. |
+| **heic2any** | 0.0.4 | The core conversion engine. |
+| **Vite PWA** | 0.21 | Enables offline installation. |
+| **Framer Motion** | 12 | Smooth UI animations. |
 | **Lucide React** | 0.546 | Clean, consistent icons. |
-
----
-
-
-
-The 90% quality setting for JPEG is a deliberate choice — it's visually indistinguishable from 100% but noticeably smaller in file size.
 
 ---
 
@@ -123,13 +122,19 @@ The 90% quality setting for JPEG is a deliberate choice — it's visually indist
 
 There is no backend. There is no analytics. There is no tracking pixel. There is no database.
 
-When you close the tab, everything is gone. Your photos stayed on your machine the entire time.
+When you close the tab, everything is gone. Your photos stayed on your machine the entire time. If you experience performance issues, please see our [Troubleshooting Guide](./docs/TROUBLESHOOTING.md).
+
+---
+
+## Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines on how to help improve SnapHeic. For design consistency, refer to our [Style Guide](./docs/STYLE_GUIDE.md).
 
 ---
 
 ## License
 
-Apache-2.0 — use it, fork it, improve it. A mention or a star is always appreciated but never required.
+Apache-2.0 — use it, fork it, improve it.
 
 ---
 
