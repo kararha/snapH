@@ -9,23 +9,16 @@ import {
   Trash2, 
   Download, 
   Image as ImageIcon, 
-  Settings, 
   CheckCircle, 
   Loader2, 
   AlertCircle,
-  FileUp,
-  X,
   Plus,
   ShieldCheck,
-  ArrowLeft,
-  Lock,
-  Globe,
-  Database
+  X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import heic2any from 'heic2any';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
-import { HowItWorks } from './components/HowItWorks';
 import { translations, Language } from './translations';
 
 import logoIcon from './assets/logo-icon.svg';
@@ -47,7 +40,7 @@ interface ConversionItem {
 }
 
 const SnapHeicLogo = ({ size = 28 }: { size?: number }) => (
-  <div className="relative inline-flex items-center justify-center bg-black text-white p-1 rounded overflow-hidden" style={{ width: size + 8, height: size + 8 }}>
+  <div className="relative inline-flex items-center justify-center bg-black text-white p-1 overflow-hidden" style={{ width: size + 8, height: size + 8 }}>
     <img src={logoIcon} style={{ width: size, height: size }} alt="SnapHeic" />
     <motion.div 
       initial={{ x: -size }}
@@ -194,11 +187,11 @@ export default function App() {
             className="cursor-pointer group flex flex-col"
             onClick={() => setView('converter')}
           >
-            <h1 className="text-4xl font-bold tracking-tighter flex items-center gap-2">
+            <h1 className="text-4xl font-bold tracking-tighter flex items-center gap-2 text-black">
               <SnapHeicLogo />
               {t.title}
             </h1>
-            <p className="mono-label mt-1 group-hover:text-black transition-colors">
+            <p className="mono-label mt-1 text-black">
               {t.subtitle}
             </p>
           </div>
@@ -206,13 +199,13 @@ export default function App() {
           <div className="flex items-center gap-2">
             <button 
               onClick={() => setLang('en')} 
-              className={`px-3 py-1 text-[10px] font-mono border-2 transition-all ${lang === 'en' ? 'bg-black text-white border-black' : 'border-black/10 hover:border-black'}`}
+              className={`px-3 py-1 text-[10px] font-mono border transition-all ${lang === 'en' ? 'bg-black text-white border-black' : 'border-black/20 hover:border-black text-black'}`}
             >
               EN
             </button>
             <button 
               onClick={() => setLang('ar')} 
-              className={`px-3 py-1 text-[10px] font-mono border-2 transition-all ${lang === 'ar' ? 'bg-black text-white border-black' : 'border-black/10 hover:border-black'}`}
+              className={`px-3 py-1 text-[10px] font-mono border transition-all ${lang === 'ar' ? 'bg-black text-white border-black' : 'border-black/20 hover:border-black text-black'}`}
             >
               AR
             </button>
@@ -220,13 +213,13 @@ export default function App() {
         </div>
         
         {view === 'converter' && (
-          <div className="flex items-center gap-4 bg-white p-3 technical-border">
+          <div className="flex items-center gap-4 bg-white p-3 border border-black">
             <div className="flex flex-col gap-1">
               <span className="mono-label">{t.outputFormat}</span>
               <select 
                 value={globalFormat}
                 onChange={(e) => setGlobalFormat(e.target.value as ConversionFormat)}
-                className="bg-transparent border-none text-sm font-bold focus:ring-0 cursor-pointer"
+                className="bg-transparent border-none text-sm font-bold focus:ring-0 cursor-pointer text-black"
               >
                 <option value="image/jpeg">JPEG (.jpg)</option>
                 <option value="image/png">PNG (.png)</option>
@@ -237,216 +230,193 @@ export default function App() {
       </header>
 
       {view === 'converter' ? (
-        <>
-          <HowItWorks lang={lang} />
-          {/* Upload Zone */}
-          <div className="flex flex-col gap-2">
-        <AnimatePresence>
-          {validationError && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="bg-red-50 border-l-4 border-red-600 p-3 flex items-center gap-2 overflow-hidden"
-            >
-              <AlertCircle size={14} className="text-red-600" />
-              <span className="mono-label text-red-600 opacity-100 lowercase font-bold">{validationError}</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <div 
-          onDrop={onDrop}
-          onDragOver={onDragOver}
-          onDragLeave={onDragLeave}
-          onClick={() => fileInputRef.current?.click()}
-          className={`
-            relative h-64 border-2 border-dashed border-[#1A1A1A] flex flex-col items-center justify-center gap-4 cursor-pointer transition-all
-            ${isDragging ? 'bg-black/5 scale-[0.99] border-solid' : 'bg-white hover:bg-black/[0.02]'}
-            ${validationError ? 'border-red-600 bg-red-50/10' : ''}
-          `}
-        >
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            hidden 
-            multiple 
-            accept=".heic,.heif"
-            onChange={(e) => e.target.files && addFiles(e.target.files)}
-          />
-          <div className="bg-[#1A1A1A] text-white p-4 rounded-full">
-            <Upload size={32} />
-          </div>
-          <div className="text-center">
-            <p className="font-bold text-xl tracking-tight">{t.dropFiles}</p>
-            <p className="mono-label">{t.browseFiles}</p>
-          </div>
-          {items.length > 0 && (
-            <div className={`absolute top-2 ${lang === 'ar' ? 'left-2' : 'right-2'} px-2 py-1 bg-black text-white font-mono text-[10px] uppercase`}>
-              {items.length} {t.filesQueued}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Batch Actions */}
-      <AnimatePresence>
-        {items.length > 0 && (
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-            className="flex items-center justify-between gap-4 p-4 bg-white technical-border"
-          >
-            <div className="flex gap-2">
-              <button 
-                onClick={convertAll}
-                disabled={items.every(i => i.status === 'completed' || i.status === 'converting')}
-                className="flex items-center gap-2 bg-[#1A1A1A] text-white px-4 py-2 font-bold hover:opacity-90 disabled:opacity-30 transition-opacity"
-              >
-                <FileUp size={18} />
-                {t.convertAll}
-              </button>
-              <button 
-                onClick={downloadAll}
-                disabled={!items.some(i => i.status === 'completed')}
-                className="flex items-center gap-2 border-2 border-black px-4 py-2 font-bold hover:bg-black/5 disabled:opacity-30 transition-all"
-              >
-                <Download size={18} />
-                {t.downloadAll}
-              </button>
-            </div>
-            
-            <button 
-              onClick={() => {
-                // Clean up object URLs so we don't hog memory
-                items.forEach(item => {
-                  if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
-                  if (item.resultUrl) URL.revokeObjectURL(item.resultUrl);
-                });
-                setItems([]);
-              }}
-              className="mono-label hover:text-red-600 transition-colors flex items-center gap-1"
-            >
-              <X size={12} /> {t.clearQueue}
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* File List */}
-      <div className="flex flex-col gap-3">
-        <AnimatePresence mode="popLayout">
-          {items.map((item) => (
-            <motion.div
-              layout
-              key={item.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="flex items-center justify-between bg-white p-4 technical-border gap-4 group"
-            >
-              <div className="flex items-center gap-4 flex-1 min-w-0">
-                <div className="w-12 h-12 bg-black/5 flex items-center justify-center shrink-0 overflow-hidden technical-border !shadow-none border-black/10">
-                  {item.status === 'completed' && item.resultUrl ? (
-                    <img 
-                      src={item.resultUrl} 
-                      alt="Converted preview" 
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <ImageIcon size={20} className="opacity-30" />
-                  )}
-                </div>
-                <div className="flex flex-col min-w-0">
-                  <span className="font-bold truncate text-sm">{item.file.name}</span>
-                  <span className="mono-label">{(item.file.size / (1024 * 1024)).toFixed(2)} MB</span>
-                </div>
-              </div>
-
-              {/* Progress and status */}
-              <div className="flex items-center gap-8 px-4 flex-1">
-                {item.status === 'converting' ? (
-                  <div className="flex items-center gap-2 w-full">
-                    <Loader2 size={16} className="animate-spin text-black" />
-                    <div className="flex-1 h-1 bg-black/10">
-                      <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: `${item.progress}%` }}
-                        className="h-full bg-black"
-                      />
-                    </div>
-                  </div>
-                ) : item.status === 'completed' ? (
-                  <span className="flex items-center gap-2 text-green-600 font-bold text-xs">
-                    <CheckCircle size={16} /> 
-                    <span className="mono-label text-green-600 opacity-100">{t.converted}</span>
-                  </span>
-                ) : item.status === 'error' ? (
-                  <div className="flex flex-col min-w-0">
-                    <span className="flex items-center gap-2 text-red-600 font-bold text-xs">
-                      <AlertCircle size={16} />
-                      <span className="mono-label text-red-600 opacity-100">{t.failed}</span>
-                    </span>
-                    {item.error && (
-                      <span 
-                        className="text-[9px] text-red-500 font-mono mt-0.5 truncate max-w-[150px] opacity-70" 
-                        title={item.error}
-                      >
-                        {item.error}
-                      </span>
-                    )}
-                  </div>
-                ) : (
-                  <span className="mono-label">{t.ready}</span>
-                )}
-              </div>
-
-              <div className="flex items-center gap-2">
-                {item.status === 'completed' ? (
-                  <button 
-                    onClick={() => downloadItem(item)}
-                    className="p-2 hover:bg-black hover:text-white transition-all border border-black rounded"
-                    title="Download"
-                  >
-                    <Download size={18} />
-                  </button>
-                ) : (
-                  <button 
-                    onClick={() => convertItem(item.id)}
-                    disabled={item.status === 'converting'}
-                    className="p-2 hover:bg-black hover:text-white transition-all border border-transparent hover:border-black rounded group"
-                    title="Convert"
-                  >
-                    <Plus size={18} className="group-hover:rotate-90 transition-transform" />
-                  </button>
-                )}
-                <button 
-                  onClick={() => removeItem(item.id)}
-                  className="p-2 text-red-500 hover:bg-red-50 transition-all rounded"
-                  title="Remove"
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+          {/* Left Column: Upload Area */}
+          <div className="flex flex-col">
+            <AnimatePresence>
+              {validationError && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="bg-white border-b border-black p-3 flex items-center gap-2 overflow-hidden mb-4"
                 >
-                  <Trash2 size={18} />
+                  <AlertCircle size={14} className="text-black" />
+                  <span className="mono-label text-black opacity-100 lowercase font-bold">{validationError}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div 
+              onDrop={onDrop}
+              onDragOver={onDragOver}
+              onDragLeave={onDragLeave}
+              onClick={() => fileInputRef.current?.click()}
+              className={`
+                relative h-[400px] border border-black bg-white flex flex-col items-center justify-center gap-6 cursor-pointer transition-all
+                ${isDragging ? 'bg-black/5' : 'hover:bg-black/[0.02]'}
+              `}
+            >
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                hidden 
+                multiple 
+                accept=".heic,.heif"
+                onChange={(e) => e.target.files && addFiles(e.target.files)}
+              />
+              <Upload size={32} strokeWidth={1} className="text-black" />
+              <div className="text-center flex flex-col items-center">
+                <h2 className="font-bold text-xl tracking-tight mb-2 text-black">Select HEIC Files</h2>
+                <p className="text-sm text-black/60 mb-6">Drag and drop or click to browse.</p>
+                <button 
+                  className="bg-black text-white font-bold text-xs uppercase px-6 py-3 tracking-wider hover:bg-black/90 transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    fileInputRef.current?.click();
+                  }}
+                >
+                  BROWSE FILES
                 </button>
               </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-
-        {items.length === 0 && (
-          <div className="h-32 flex items-center justify-center text-black/20 font-mono text-sm border-2 border-dashed border-black/10">
-            {t.noFilesInQueue}
+            </div>
           </div>
-        )}
-      </div>
-    </>
-  ) : (
-    <PrivacyPolicy onBack={() => setView('converter')} lang={lang} />
-  )}
+
+          {/* Right Column: Queue */}
+          <div className="flex flex-col">
+            <div className="border-b border-black pb-3 mb-4 flex justify-between items-end">
+              <h2 className="font-bold text-sm uppercase tracking-widest text-black">CONVERSION QUEUE ({items.length})</h2>
+              {items.length > 0 && (
+                <div className="flex gap-4">
+                  <button 
+                    onClick={convertAll}
+                    disabled={items.every(i => i.status === 'completed' || i.status === 'converting')}
+                    className="text-[10px] font-bold font-mono uppercase text-black hover:underline disabled:opacity-30"
+                  >
+                    Convert All
+                  </button>
+                  <button 
+                    onClick={downloadAll}
+                    disabled={!items.some(i => i.status === 'completed')}
+                    className="text-[10px] font-bold font-mono uppercase text-black hover:underline disabled:opacity-30"
+                  >
+                    Download All
+                  </button>
+                  <button 
+                    onClick={() => {
+                      items.forEach(item => {
+                        if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
+                        if (item.resultUrl) URL.revokeObjectURL(item.resultUrl);
+                      });
+                      setItems([]);
+                    }}
+                    className="text-[10px] font-mono uppercase text-black/50 hover:text-black transition-colors"
+                  >
+                    Clear
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <AnimatePresence mode="popLayout">
+                {items.map((item) => (
+                  <motion.div
+                    layout
+                    key={item.id}
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.98 }}
+                    className="flex items-center justify-between bg-white p-3 border border-black gap-4 group"
+                  >
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="w-10 h-10 bg-black/5 flex items-center justify-center shrink-0 border border-black/10">
+                        {item.status === 'completed' && item.resultUrl ? (
+                          <img 
+                            src={item.resultUrl} 
+                            alt="Converted preview" 
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <ImageIcon size={16} strokeWidth={1.5} className="opacity-40 text-black" />
+                        )}
+                      </div>
+                      <div className="flex flex-col min-w-0 text-black">
+                        <span className="font-bold truncate text-xs">{item.file.name}</span>
+                        <span className="text-[10px] font-mono opacity-50">{(item.file.size / (1024 * 1024)).toFixed(2)} MB</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 px-2 flex-1">
+                      {item.status === 'converting' ? (
+                        <div className="flex items-center gap-2 w-full">
+                          <Loader2 size={14} className="animate-spin text-black" />
+                          <div className="flex-1 h-1 bg-black/10">
+                            <motion.div 
+                              initial={{ width: 0 }}
+                              animate={{ width: `${item.progress}%` }}
+                              className="h-full bg-black"
+                            />
+                          </div>
+                        </div>
+                      ) : item.status === 'completed' ? (
+                        <span className="flex items-center gap-1.5 text-black font-bold text-[10px] uppercase tracking-wider">
+                          <CheckCircle size={14} strokeWidth={1.5} /> 
+                          {t.converted}
+                        </span>
+                      ) : item.status === 'error' ? (
+                        <span className="flex items-center gap-1.5 text-black font-bold text-[10px] uppercase tracking-wider">
+                          <AlertCircle size={14} strokeWidth={1.5} />
+                          {t.failed}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-mono opacity-50 uppercase tracking-widest text-black">{t.ready}</span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {item.status === 'completed' ? (
+                        <button 
+                          onClick={() => downloadItem(item)}
+                          className="p-1.5 hover:bg-black hover:text-white transition-all border border-black text-black"
+                        >
+                          <Download size={14} />
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => convertItem(item.id)}
+                          disabled={item.status === 'converting'}
+                          className="p-1.5 hover:bg-black hover:text-white transition-all border border-transparent hover:border-black group text-black"
+                        >
+                          <Plus size={14} className="group-hover:rotate-90 transition-transform" />
+                        </button>
+                      )}
+                      <button 
+                        onClick={() => removeItem(item.id)}
+                        className="p-1.5 text-black hover:bg-black hover:text-white transition-all border border-transparent hover:border-black"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+
+              {items.length === 0 && (
+                <div className="h-[200px] flex items-center justify-center border border-dashed border-black">
+                  <span className="text-black font-bold text-sm uppercase tracking-widest">QUEUE IS EMPTY</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <PrivacyPolicy onBack={() => setView('converter')} lang={lang} />
+      )}
 
       <footer className="mt-auto pt-12 pb-4">
         <div className="border-t border-black/10 pt-4 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex flex-col gap-1 items-center md:items-start">
+          <div className="flex flex-col gap-1 items-center md:items-start text-black">
             <div 
               className="flex items-center gap-2 cursor-pointer hover:opacity-100 opacity-60 transition-opacity"
               onClick={() => setView('privacy')}
@@ -457,12 +427,12 @@ export default function App() {
             <span className="mono-label !opacity-40 text-[9px]">{t.createdBy}</span>
           </div>
           <div className="flex gap-4 items-center">
-            <button onClick={() => setView('privacy')} className="mono-label hover:text-black transition-colors">{t.privacyPolicy}</button>
+            <button onClick={() => setView('privacy')} className="mono-label hover:text-black transition-colors text-black">{t.privacyPolicy}</button>
             <a
               href="https://github.com/kararha/snapH"
               target="_blank"
               rel="noopener noreferrer"
-              className="mono-label hover:text-black transition-colors flex items-center gap-1"
+              className="mono-label hover:text-black transition-colors flex items-center gap-1 text-black"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12z"/></svg>
               View on GitHub

@@ -7,16 +7,16 @@
 
 @layer base {
   body {
-    @apply bg-[#F4F4F2] text-[#1A1A1A] font-sans antialiased;
+    @apply bg-[#F4F4F2] text-black font-sans antialiased;
   }
 }
 
 @layer components {
   .technical-border {
-    @apply border-2 border-[#1A1A1A] shadow-[4px_4px_0px_0px_rgba(26,26,26,1)];
+    @apply border border-black;
   }
   
   .mono-label {
-    @apply font-mono text-[10px] uppercase tracking-wider opacity-60;
+    @apply font-mono text-[10px] uppercase tracking-wider text-black;
   }
 }
