@@ -15,7 +15,8 @@ import {
   Plus,
   ShieldCheck,
   X,
-  MonitorDown
+  MonitorDown,
+  ArrowDown
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import heic2any from 'heic2any';
@@ -517,8 +518,11 @@ export default function App() {
             <div className="bg-black text-white technical-border flex items-center gap-4 p-4 shadow-2xl">
               <MonitorDown size={20} className="shrink-0" />
               <div className="flex flex-col flex-1 min-w-0">
-                <span className="font-bold text-sm uppercase tracking-widest">{t.pwaManualTitle}</span>
-                <span className="text-[10px] font-mono opacity-60 mt-0.5">{t.pwaManualDesc}</span>
+                <span className="font-bold text-sm uppercase tracking-widest flex items-center gap-2">{t.pwaManualTitle}</span>
+                <span className="text-[10px] font-mono opacity-60 mt-0.5 flex items-center gap-1">
+                  <ArrowDown size={10} className="animate-bounce" />
+                  {t.pwaManualDesc}
+                </span>
               </div>
               <button
                 onClick={() => setDismissedManualPwa(true)}
