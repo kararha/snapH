@@ -56,5 +56,7 @@ export function usePWAInstall() {
     setIsInstallable(false);
   };
 
-  return { isInstallable, isInstalled, triggerInstall, dismissInstall };
+  const supportsInstallPrompt = typeof window !== 'undefined' && 'onbeforeinstallprompt' in window;
+
+  return { isInstallable, isInstalled, supportsInstallPrompt, triggerInstall, dismissInstall };
 }

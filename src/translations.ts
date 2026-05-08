@@ -47,6 +47,9 @@ export const translations = {
     pwaInstallButton: 'INSTALL',
     pwaInstallDismiss: 'Not now',
     pwaInstalledLabel: 'Installed',
+    pwaManualTitle: 'Install SnapHeic',
+    pwaManualDesc: 'Use your browser menu: Add to Home Screen',
+    pwaManualDismiss: 'Dismiss',
     },
     ar: {
     title: 'سناب هك',
@@ -93,5 +96,8 @@ export const translations = {
     pwaInstallButton: 'تثبيت',
     pwaInstallDismiss: 'ليس الآن',
     pwaInstalledLabel: 'مثبّت',
+    pwaManualTitle: 'ثبّت سناب هيك',
+    pwaManualDesc: 'استخدم قائمة المتصفح: أضف إلى الشاشة الرئيسية',
+    pwaManualDismiss: 'تجاهل',
   }
 };
