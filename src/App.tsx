@@ -22,6 +22,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import heic2any from 'heic2any';
 import JSZip from 'jszip';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
+import { PWAInstallModal } from './components/PWAInstallModal';
 import { translations, Language } from './translations';
 import { usePWAInstall } from './hooks/usePWAInstall';
 
@@ -65,9 +66,9 @@ export default function App() {
   const [isDragging, setIsDragging] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { isInstallable, isInstalled, supportsInstallPrompt, triggerInstall, dismissInstall } = usePWAInstall();
-  const [dismissedManualPwa, setDismissedManualPwa] = useState(false);
-  const showManualPwa = !supportsInstallPrompt && !isInstalled && !dismissedManualPwa;
+  const { isInstallable, isInstalled, installationPath, triggerInstall, dismissInstall } = usePWAInstall();
+  const [dismissedPwaGuide, setDismissedPwaGuide] = useState(false);
+  const showPwaGuide = installationPath !== 'CHROMIUM' && installationPath !== 'INSTALLED' && !dismissedPwaGuide;
 
   const addFiles = useCallback((files: FileList | File[]) => {
     const allFiles = Array.from(files);
@@ -468,7 +469,7 @@ export default function App() {
           </div>
         </div>
       </footer>
-      {/* PWA Install Toast Banner */}
+      {/* PWA Install Banners */}
       <AnimatePresence>
         {isInstallable && (
           <motion.div
@@ -505,7 +506,15 @@ export default function App() {
           </motion.div>
         )}
 
-        {showManualPwa && (
+        {showPwaGuide && installationPath === 'IOS' && (
+          <PWAInstallModal type="ios" lang={lang} onDismiss={() => setDismissedPwaGuide(true)} />
+        )}
+
+        {showPwaGuide && installationPath === 'FIREFOX' && (
+          <PWAInstallModal type="firefox" lang={lang} onDismiss={() => setDismissedPwaGuide(true)} />
+        )}
+
+        {showPwaGuide && installationPath === 'OTHER' && (
           <motion.div
             initial={{ y: 120, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -518,14 +527,14 @@ export default function App() {
             <div className="bg-black text-white technical-border flex items-center gap-4 p-4 shadow-2xl">
               <MonitorDown size={20} className="shrink-0" />
               <div className="flex flex-col flex-1 min-w-0">
-                <span className="font-bold text-sm uppercase tracking-widest flex items-center gap-2">{t.pwaManualTitle}</span>
+                <span className="font-bold text-sm uppercase tracking-widest">{t.pwaManualTitle}</span>
                 <span className="text-[10px] font-mono opacity-60 mt-0.5 flex items-center gap-1">
                   <ArrowDown size={10} className="animate-bounce" />
                   {t.pwaManualDesc}
                 </span>
               </div>
               <button
-                onClick={() => setDismissedManualPwa(true)}
+                onClick={() => setDismissedPwaGuide(true)}
                 aria-label={t.pwaManualDismiss}
                 className="shrink-0 p-1.5 opacity-50 hover:opacity-100 transition-opacity"
               >

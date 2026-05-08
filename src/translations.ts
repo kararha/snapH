@@ -50,6 +50,11 @@ export const translations = {
     pwaManualTitle: 'Install SnapHeic',
     pwaManualDesc: 'Use your browser menu: Add to Home Screen',
     pwaManualDismiss: 'Dismiss',
+    pwaIosTitle: 'Install SnapHeic',
+    pwaIosStep1: 'Tap the Share button in the browser bar.',
+    pwaIosStep2: 'Scroll down and tap "Add to Home Screen".',
+    pwaFirefoxTitle: 'Install SnapHeic',
+    pwaFirefoxStep: 'Tap the three-dot menu (⋮) next to the URL and select "Install".',
     },
     ar: {
     title: 'سناب هك',
@@ -99,5 +104,10 @@ export const translations = {
     pwaManualTitle: 'ثبّت سناب هيك',
     pwaManualDesc: 'استخدم قائمة المتصفح: أضف إلى الشاشة الرئيسية',
     pwaManualDismiss: 'تجاهل',
+    pwaIosTitle: 'ثبّت سناب هيك',
+    pwaIosStep1: 'اضغط على زر المشاركة في شريط المتصفح.',
+    pwaIosStep2: 'مرر للأسفل واضغط "إضافة إلى الشاشة الرئيسية".',
+    pwaFirefoxTitle: 'ثبّت سناب هيك',
+    pwaFirefoxStep: 'اضغط على قائمة النقاط الثلاث (⋮) بجانب الرابط واختر "تثبيت".',
   }
 };

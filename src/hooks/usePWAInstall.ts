@@ -5,6 +5,8 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
+export type InstallationPath = 'INSTALLED' | 'CHROMIUM' | 'IOS' | 'FIREFOX' | 'OTHER';
+
 export function usePWAInstall() {
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstallable, setIsInstallable] = useState(false);
@@ -58,5 +60,21 @@ export function usePWAInstall() {
 
   const supportsInstallPrompt = typeof window !== 'undefined' && 'onbeforeinstallprompt' in window;
 
-  return { isInstallable, isInstalled, supportsInstallPrompt, triggerInstall, dismissInstall };
+  const installationPath: InstallationPath = (() => {
+    if (isInstalled) return 'INSTALLED';
+    const isStandalone =
+      typeof window !== 'undefined' &&
+      (window.matchMedia('(display-mode: standalone)').matches ||
+       ('standalone' in window.navigator && (window.navigator as any).standalone === true));
+    if (isStandalone) return 'INSTALLED';
+    if (supportsInstallPrompt) return 'CHROMIUM';
+    if (typeof navigator !== 'undefined') {
+      const ua = navigator.userAgent.toLowerCase();
+      if (/iphone|ipad|ipod/.test(ua)) return 'IOS';
+      if (ua.includes('firefox')) return 'FIREFOX';
+    }
+    return 'OTHER';
+  })();
+
+  return { isInstallable, isInstalled, supportsInstallPrompt, installationPath, triggerInstall, dismissInstall };
 }
