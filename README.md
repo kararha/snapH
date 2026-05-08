@@ -27,7 +27,37 @@ So I built my own. It's a simple web app that converts HEIC and HEIF images enti
 
 ##  PWA Support
 
-SnapHeic is a Progressive Web App. This means you can "install" it on your device (Desktop, iOS, or Android) and it will work entirely offline. Since the conversion happens on your local machine, no internet connection is required once the app is loaded.
+SnapHeic is a fully compliant Progressive Web App. Once loaded, it works **entirely offline** — because the conversion runs locally, no internet is needed after the first visit.
+
+### Install Banner
+
+When the browser detects the app can be installed (i.e. the `beforeinstallprompt` event fires), a **slide-up toast banner** appears at the bottom of the screen:
+
+- **INSTALL** button — triggers the browser's native install dialog
+- **✕** button — dismisses the banner for the session without installing
+- Fully bilingual — works in both **English** and **Arabic (RTL)**
+- Accessible: uses `role="status"` and `aria-live="polite"`
+
+The banner is powered by the `usePWAInstall` hook (`src/hooks/usePWAInstall.ts`), which:
+1. Intercepts and stores the `beforeinstallprompt` event
+2. Detects if the app is already running in standalone mode (i.e. already installed)
+3. Exposes `triggerInstall()` and `dismissInstall()` to the UI
+
+### PWA Icons
+
+| File | Size | Used for |
+|---|---|---|
+| `public/pwa-192x192.png` | 192×192 | Android Chrome install icon |
+| `public/pwa-512x512.png` | 512×512 | Splash screen + maskable icon |
+
+> **Note:** Android and Chrome do not support SVG icons in the Web App Manifest. PNG icons at both sizes are required for the install prompt to appear and the home screen icon to render correctly.
+
+### Workbox Caching Strategy
+
+| Asset type | Strategy | TTL |
+|---|---|---|
+| JS / CSS / HTML | Precache (install-time) | App version |
+| Images | CacheFirst | 30 days |
 
 ---
 
@@ -82,20 +112,25 @@ The output goes into `dist/` — you can host that folder anywhere.
 ```
 snapheic/
 ├── src/
-│   ├── App.tsx                  # Main app — all the converter logic lives here
+│   ├── App.tsx                  # Main app — converter logic + PWA install banner
 │   ├── main.tsx                 # React entry point & PWA registration
 │   ├── index.css                # Global styles
-│   ├── translations.ts          # English and Arabic strings
+│   ├── translations.ts          # English and Arabic strings (incl. PWA keys)
+│   ├── hooks/
+│   │   └── usePWAInstall.ts     # Hook: listens for beforeinstallprompt event
 │   └── components/
 │       ├── HowItWorks.tsx       # The "how it works" checklist panel
 │       └── PrivacyPolicy.tsx    # The privacy policy view
+├── public/
+│   ├── pwa-192x192.png          # PWA icon — Android Chrome (required)
+│   └── pwa-512x512.png          # PWA icon — splash + maskable (required)
 ├── docs/                        
 │   ├── DOCUMENTATION.md         # Detailed technical guide
 │   ├── STYLE_GUIDE.md           # Visual identity & design system
 │   ├── TROUBLESHOOTING.md       # Memory & error help
 │   └── screenshot-main.png      # App screenshots
 ├── index.html                   # Vite HTML entry point (SEO optimized)
-├── vite.config.ts               # Vite & PWA configuration
+├── vite.config.ts               # Vite & PWA configuration (manifest + Workbox)
 ├── CONTRIBUTING.md              # Community contribution guide
 ├── tsconfig.json                # TypeScript config
 └── package.json

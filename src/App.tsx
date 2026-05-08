@@ -14,13 +14,15 @@ import {
   AlertCircle,
   Plus,
   ShieldCheck,
-  X
+  X,
+  MonitorDown
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import heic2any from 'heic2any';
 import JSZip from 'jszip';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { translations, Language } from './translations';
+import { usePWAInstall } from './hooks/usePWAInstall';
 
 import logoIcon from './assets/logo-icon.svg';
 
@@ -62,6 +64,7 @@ export default function App() {
   const [isDragging, setIsDragging] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { isInstallable, triggerInstall, dismissInstall } = usePWAInstall();
 
   const addFiles = useCallback((files: FileList | File[]) => {
     const allFiles = Array.from(files);
@@ -462,6 +465,43 @@ export default function App() {
           </div>
         </div>
       </footer>
+      {/* PWA Install Toast Banner */}
+      <AnimatePresence>
+        {isInstallable && (
+          <motion.div
+            initial={{ y: 120, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 120, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 28 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md"
+            role="status"
+            aria-live="polite"
+          >
+            <div className="bg-black text-white technical-border flex items-center gap-4 p-4 shadow-2xl">
+              <MonitorDown size={20} className="shrink-0" />
+              <div className="flex flex-col flex-1 min-w-0">
+                <span className="font-bold text-sm uppercase tracking-widest">{t.pwaInstallTitle}</span>
+                <span className="text-[10px] font-mono opacity-60 mt-0.5">{t.pwaInstallDesc}</span>
+              </div>
+              <button
+                id="pwa-install-btn"
+                onClick={triggerInstall}
+                className="shrink-0 bg-white text-black font-bold text-[10px] uppercase px-4 py-2 tracking-wider hover:bg-white/90 transition-colors"
+              >
+                {t.pwaInstallButton}
+              </button>
+              <button
+                id="pwa-dismiss-btn"
+                onClick={dismissInstall}
+                aria-label={t.pwaInstallDismiss}
+                className="shrink-0 p-1.5 opacity-50 hover:opacity-100 transition-opacity"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

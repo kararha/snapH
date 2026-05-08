@@ -42,6 +42,11 @@ export const translations = {
     lastUpdated: 'Last Updated: May 2026 • Karar',
     createdBy: 'Created by Karar Haider',
     iphoneNote: 'Perfect if you have an iPhone and a Windows/Linux laptop. Convert your photos easily without Mac!',
+    pwaInstallTitle: 'Install SnapHeic',
+    pwaInstallDesc: 'Add to your home screen for offline access.',
+    pwaInstallButton: 'INSTALL',
+    pwaInstallDismiss: 'Not now',
+    pwaInstalledLabel: 'Installed',
     },
     ar: {
     title: 'سناب هك',
@@ -83,5 +88,10 @@ export const translations = {
     lastUpdated: 'آخر تحديث: مايو 2026 • كرار',
     createdBy: 'تم التطوير بواسطة كرار حيدر',
     iphoneNote: 'مثالي إذا كان لديك iPhone وجهاز كمبيوتر يعمل بنظام Windows أو Linux. حول صورك بسهولة!',
+    pwaInstallTitle: 'ثبّت سناب هيك',
+    pwaInstallDesc: 'أضف التطبيق للشاشة الرئيسية للوصول دون إنترنت.',
+    pwaInstallButton: 'تثبيت',
+    pwaInstallDismiss: 'ليس الآن',
+    pwaInstalledLabel: 'مثبّت',
   }
 };
