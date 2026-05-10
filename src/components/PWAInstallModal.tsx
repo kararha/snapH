@@ -59,8 +59,8 @@ const FloatingArrow = () => (
     transition={{ delay: 0.4, duration: 0.5 }}
     style={{
       position: 'fixed',
-      top: 0,
-      right: 0,
+      top: 10,
+      right: '20vw',
       width: 200,
       height: 260,
       zIndex: 60,
