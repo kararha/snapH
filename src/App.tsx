@@ -68,7 +68,7 @@ export default function App() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { isInstallable, isInstalled, installationPath, triggerInstall, dismissInstall } = usePWAInstall();
   const [dismissedPwaGuide, setDismissedPwaGuide] = useState(false);
-  const showPwaGuide = installationPath !== 'CHROMIUM' && installationPath !== 'INSTALLED' && !dismissedPwaGuide;
+  const showPwaGuide = installationPath !== 'CHROMIUM' && installationPath !== 'CHROMIUM_MOBILE' && installationPath !== 'INSTALLED' && !dismissedPwaGuide;
 
   const addFiles = useCallback((files: FileList | File[]) => {
     const allFiles = Array.from(files);
@@ -506,12 +506,25 @@ export default function App() {
           </motion.div>
         )}
 
-        {showPwaGuide && installationPath === 'IOS' && (
-          <PWAInstallModal type="ios" lang={lang} onDismiss={() => setDismissedPwaGuide(true)} />
+        {showPwaGuide && installationPath === 'SAFARI_MOBILE' && (
+          <PWAInstallModal type="safari-mobile" lang={lang} onDismiss={() => setDismissedPwaGuide(true)} />
         )}
 
-        {showPwaGuide && installationPath === 'FIREFOX' && (
-          <PWAInstallModal type="firefox" lang={lang} onDismiss={() => setDismissedPwaGuide(true)} />
+        {showPwaGuide && installationPath === 'FIREFOX_DESKTOP' && (
+          <PWAInstallModal type="firefox-desktop" lang={lang} onDismiss={() => setDismissedPwaGuide(true)} />
+        )}
+
+        {showPwaGuide && installationPath === 'FIREFOX_MOBILE' && (
+          <PWAInstallModal type="firefox-mobile" lang={lang} onDismiss={() => setDismissedPwaGuide(true)} />
+        )}
+
+        {showPwaGuide && installationPath === 'SAFARI_DESKTOP' && (
+          <PWAInstallModal type="safari-desktop" lang={lang} onDismiss={() => setDismissedPwaGuide(true)} />
+        )}
+
+        {/* Chromium Mobile fallback: shown only after native install banner is dismissed */}
+        {!isInstallable && installationPath === 'CHROMIUM_MOBILE' && !isInstalled && !dismissedPwaGuide && (
+          <PWAInstallModal type="chromium-mobile" lang={lang} onDismiss={() => setDismissedPwaGuide(true)} />
         )}
 
         {showPwaGuide && installationPath === 'OTHER' && (

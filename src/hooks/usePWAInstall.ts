@@ -5,7 +5,7 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
-export type InstallationPath = 'INSTALLED' | 'CHROMIUM' | 'IOS' | 'FIREFOX' | 'OTHER';
+export type InstallationPath = 'INSTALLED' | 'CHROMIUM' | 'CHROMIUM_MOBILE' | 'FIREFOX_DESKTOP' | 'FIREFOX_MOBILE' | 'SAFARI_DESKTOP' | 'SAFARI_MOBILE' | 'OTHER';
 
 export function usePWAInstall() {
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
@@ -67,11 +67,17 @@ export function usePWAInstall() {
       (window.matchMedia('(display-mode: standalone)').matches ||
        ('standalone' in window.navigator && (window.navigator as any).standalone === true));
     if (isStandalone) return 'INSTALLED';
-    if (supportsInstallPrompt) return 'CHROMIUM';
+    if (supportsInstallPrompt) {
+      const ua = typeof navigator !== 'undefined' ? navigator.userAgent.toLowerCase() : '';
+      const isMobile = /android|iphone|ipad|ipod|mobile/i.test(ua) || (typeof window !== 'undefined' && window.innerWidth <= 768);
+      return isMobile ? 'CHROMIUM_MOBILE' : 'CHROMIUM';
+    }
     if (typeof navigator !== 'undefined') {
       const ua = navigator.userAgent.toLowerCase();
-      if (/iphone|ipad|ipod/.test(ua)) return 'IOS';
-      if (ua.includes('firefox')) return 'FIREFOX';
+      const isMobile = /android|iphone|ipad|ipod|mobile/i.test(ua) || (typeof window !== 'undefined' && window.innerWidth <= 768);
+      if (/iphone|ipad|ipod/.test(ua)) return isMobile ? 'SAFARI_MOBILE' : 'SAFARI_DESKTOP';
+      if (ua.includes('firefox')) return isMobile ? 'FIREFOX_MOBILE' : 'FIREFOX_DESKTOP';
+      if (ua.includes('safari') && !ua.includes('chrome')) return isMobile ? 'SAFARI_MOBILE' : 'SAFARI_DESKTOP';
     }
     return 'OTHER';
   })();
