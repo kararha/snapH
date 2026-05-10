@@ -508,8 +508,8 @@ export default function App() {
                   <div className="w-12 h-12 bg-black/[0.02] rounded-full flex items-center justify-center text-black/20 mb-2">
                     <CheckCircle size={20} />
                   </div>
-                  <span className="text-black/40 font-bold text-[11px] uppercase tracking-widest">No files in queue</span>
-                  <span className="text-black/30 font-medium text-[12px] max-w-[200px] text-center leading-tight">Drag and drop HEIC files here to get started</span>
+                  <span className="text-black/40 font-bold text-[11px] uppercase tracking-widest">{t.noFilesInQueue}</span>
+                  <span className="text-black/30 font-medium text-[12px] max-w-[200px] text-center leading-tight">{t.queueEmptyDesc}</span>
                 </div>
               )}
             </div>
