@@ -67,8 +67,16 @@ export default function App() {
   const [validationError, setValidationError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { isInstallable, isInstalled, installationPath, triggerInstall, dismissInstall } = usePWAInstall();
-  const [dismissedPwaGuide, setDismissedPwaGuide] = useState(false);
-  const showPwaGuide = installationPath !== 'CHROMIUM' && installationPath !== 'CHROMIUM_MOBILE' && installationPath !== 'INSTALLED' && !dismissedPwaGuide;
+  const [dismissedPwaGuide, setDismissedPwaGuide] = useState(() => {
+    return localStorage.getItem('snapheic_pwa_dismissed') === 'true';
+  });
+  const [hasEngaged, setHasEngaged] = useState(false);
+  const showPwaGuide = hasEngaged && installationPath !== 'CHROMIUM' && installationPath !== 'CHROMIUM_MOBILE' && installationPath !== 'INSTALLED' && !dismissedPwaGuide;
+
+  const handlePermanentDismiss = () => {
+    setDismissedPwaGuide(true);
+    localStorage.setItem('snapheic_pwa_dismissed', 'true');
+  };
 
   const addFiles = useCallback((files: FileList | File[]) => {
     const allFiles = Array.from(files);
@@ -98,6 +106,7 @@ export default function App() {
     }));
 
     setItems(prev => [...prev, ...newItems]);
+    setHasEngaged(true); // User has engaged with the app
   }, [globalFormat, t]);
 
   const onDrop = useCallback((e: React.DragEvent) => {
@@ -507,24 +516,24 @@ export default function App() {
         )}
 
         {showPwaGuide && installationPath === 'SAFARI_MOBILE' && (
-          <PWAInstallModal type="safari-mobile" lang={lang} onDismiss={() => setDismissedPwaGuide(true)} />
+          <PWAInstallModal type="safari-mobile" lang={lang} onDismiss={() => setDismissedPwaGuide(true)} onPermanentDismiss={handlePermanentDismiss} />
         )}
 
         {showPwaGuide && installationPath === 'FIREFOX_DESKTOP' && (
-          <PWAInstallModal type="firefox-desktop" lang={lang} onDismiss={() => setDismissedPwaGuide(true)} />
+          <PWAInstallModal type="firefox-desktop" lang={lang} onDismiss={() => setDismissedPwaGuide(true)} onPermanentDismiss={handlePermanentDismiss} />
         )}
 
         {showPwaGuide && installationPath === 'FIREFOX_MOBILE' && (
-          <PWAInstallModal type="firefox-mobile" lang={lang} onDismiss={() => setDismissedPwaGuide(true)} />
+          <PWAInstallModal type="firefox-mobile" lang={lang} onDismiss={() => setDismissedPwaGuide(true)} onPermanentDismiss={handlePermanentDismiss} />
         )}
 
         {showPwaGuide && installationPath === 'SAFARI_DESKTOP' && (
-          <PWAInstallModal type="safari-desktop" lang={lang} onDismiss={() => setDismissedPwaGuide(true)} />
+          <PWAInstallModal type="safari-desktop" lang={lang} onDismiss={() => setDismissedPwaGuide(true)} onPermanentDismiss={handlePermanentDismiss} />
         )}
 
         {/* Chromium Mobile fallback: shown only after native install banner is dismissed */}
-        {!isInstallable && installationPath === 'CHROMIUM_MOBILE' && !isInstalled && !dismissedPwaGuide && (
-          <PWAInstallModal type="chromium-mobile" lang={lang} onDismiss={() => setDismissedPwaGuide(true)} />
+        {!isInstallable && installationPath === 'CHROMIUM_MOBILE' && !isInstalled && !dismissedPwaGuide && hasEngaged && (
+          <PWAInstallModal type="chromium-mobile" lang={lang} onDismiss={() => setDismissedPwaGuide(true)} onPermanentDismiss={handlePermanentDismiss} />
         )}
 
         {showPwaGuide && installationPath === 'OTHER' && (

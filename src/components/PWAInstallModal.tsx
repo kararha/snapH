@@ -1,6 +1,7 @@
+import { useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
-import { Share, MoreVertical, X } from 'lucide-react';
-import { translations, Language } from '../translations';
+import { Language } from '../translations';
+import logoIcon from '../assets/logo-icon.svg';
 
 type InstallModalType = 'safari-mobile' | 'firefox-desktop' | 'firefox-mobile' | 'safari-desktop' | 'chromium-mobile';
 
@@ -8,248 +9,168 @@ interface PWAInstallModalProps {
   type: InstallModalType;
   lang: Language;
   onDismiss: () => void;
+  onPermanentDismiss?: () => void;
 }
 
-// Accurate Firefox "Install/Download" address-bar icon:
-// A box (rect) with a downward arrow shaft + arrowhead + base tray line
-const FirefoxDownloadBarIcon = ({ size = 32 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 32 32"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    aria-label="Firefox install icon — box with downward arrow"
-  >
-    {/* Outer box */}
-    <rect x="3" y="3" width="26" height="26" rx="3" stroke="currentColor" strokeWidth="2.5" fill="none" />
-    {/* Arrow shaft (going down) */}
-    <line x1="16" y1="9" x2="16" y2="20" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-    {/* Arrowhead (pointing down) */}
-    <polyline
-      points="11,16 16,22 21,16"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      fill="none"
-    />
-    {/* Base tray */}
-    <line x1="10" y1="25" x2="22" y2="25" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-  </svg>
+const SnapHeicLogo = ({ size = 32 }: { size?: number }) => (
+  <div className="relative inline-flex items-center justify-center bg-black text-white p-2 shadow-[0_8px_16px_-4px_rgba(0,0,0,0.2)]" style={{ width: size + 12, height: size + 12 }}>
+    <img src={logoIcon} style={{ width: size, height: size }} alt="SnapHeic" />
+  </div>
 );
 
-const SafariDesktopIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
-    <line x1="3" y1="8" x2="21" y2="8" stroke="currentColor" strokeWidth="2" />
-    <circle cx="8" cy="5.5" r="1" fill="currentColor" />
-    <circle cx="12" cy="5.5" r="1" fill="currentColor" />
-    <circle cx="16" cy="5.5" r="1" fill="currentColor" />
-  </svg>
-);
-
-// A curved dashed orange arrow that curves from the modal area up toward the top-right
-// where Firefox's address bar install icon sits, with a "Look up here!" caption
-const FloatingArrow = () => (
+const ElegantInstallHint = () => (
   <motion.div
-    initial={{ opacity: 0, y: 8 }}
+    initial={{ opacity: 0, y: 10 }}
     animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0 }}
-    transition={{ delay: 0.4, duration: 0.5 }}
+    exit={{ opacity: 0, y: -10 }}
+    transition={{ delay: 0.6, duration: 0.8, ease: "easeOut" }}
     style={{
       position: 'fixed',
-      top: -15,
-      right: 140,
-      width: 200,
-      height: 260,
+      top: 12,
+      right: 140, // Points exactly under the Firefox install icon area
       zIndex: 60,
       pointerEvents: 'none',
     }}
-    aria-hidden="true"
   >
-    <svg
-      viewBox="0 0 200 260"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      style={{ width: '100%', height: '100%' }}
+    <motion.div
+      animate={{ y: [0, -4, 0] }}
+      transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
+      className="flex flex-col items-center gap-2"
     >
-      {/* Curved dashed line going from lower-left to upper-right */}
-      <path
-        d="M 40 240 C 30 170, 90 100, 155 35"
-        stroke="#e8a000"
-        strokeWidth="3"
-        strokeLinecap="round"
-        fill="none"
-        strokeDasharray="7 5"
-      />
-      {/* Arrowhead at top pointing up-right */}
-      <polyline
-        points="143,27 157,31 161,45"
-        stroke="#e8a000"
-        strokeWidth="3"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      />
-      {/* "Look up here!" caption near the tail of the arrow */}
-      <text
-        x="10"
-        y="230"
-        fill="#e8a000"
-        fontFamily="Inter, sans-serif"
-        fontWeight="700"
-        fontSize="14"
-        letterSpacing="0.05em"
-      >
-        Look up here!
-      </text>
-    </svg>
+      {/* Upward pointing elegant indicator */}
+      <div className="w-0 h-0 border-l-[6px] border-r-[6px] border-b-[8px] border-l-transparent border-r-transparent border-b-black" />
+      <div className="bg-black text-white text-[10px] uppercase tracking-widest px-4 py-2 font-bold shadow-[0_12px_32px_-8px_rgba(0,0,0,0.5)]">
+        Install App
+      </div>
+    </motion.div>
   </motion.div>
 );
 
-export function PWAInstallModal({ type, lang, onDismiss }: PWAInstallModalProps) {
-  const t = translations[lang];
-  const isFirefoxDesktop = type === 'firefox-desktop';
+export function PWAInstallModal({ type, lang, onDismiss, onPermanentDismiss }: PWAInstallModalProps) {
+  const isRtl = lang === 'ar';
+  
+  const modalRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onDismiss();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    // Auto-focus the modal for accessibility
+    if (modalRef.current) {
+      modalRef.current.focus();
+    }
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onDismiss]);
 
-  const getIcon = () => {
+  const getSteps = () => {
     switch (type) {
       case 'firefox-desktop':
-        return <FirefoxDownloadBarIcon size={30} />;
-      case 'firefox-mobile':
-        return <MoreVertical size={24} />;
-      case 'chromium-mobile':
-        return <MoreVertical size={24} />;
-      case 'safari-desktop':
-        return <SafariDesktopIcon />;
+        return [
+          "Click the install icon in the top-right of Firefox",
+          "Confirm the install popup",
+          "Launch SnapHeic from your desktop"
+        ];
       case 'safari-mobile':
-        return <Share size={24} />;
+        return [
+          "Tap the Share button in the bottom bar",
+          "Scroll down and tap 'Add to Home Screen'",
+          "Launch SnapHeic from your home screen"
+        ];
+      case 'safari-desktop':
+        return [
+          "Go to File menu in the top bar",
+          "Select 'Add to Dock'",
+          "Launch SnapHeic from your Dock"
+        ];
+      case 'firefox-mobile':
+      case 'chromium-mobile':
+        return [
+          "Tap the browser menu (⋮)",
+          "Select 'Install' or 'Add to Home Screen'",
+          "Launch SnapHeic from your home screen"
+        ];
+      default:
+        return [];
     }
   };
 
-  const getTitle = () => {
-    switch (type) {
-      case 'safari-mobile':
-        return t.pwaIosTitle;
-      case 'firefox-desktop':
-        return t.pwaFirefoxDesktopTitle;
-      case 'firefox-mobile':
-        return t.pwaFirefoxMobileTitle;
-      case 'safari-desktop':
-        return t.pwaSafariDesktopTitle;
-      case 'chromium-mobile':
-        return t.pwaChromiumMobileTitle;
-    }
-  };
+  const steps = getSteps();
 
-  const getContent = () => {
-    switch (type) {
-      case 'safari-mobile':
-        return (
-          <div className="text-left w-full space-y-4">
-            <div className="flex items-start gap-3">
-              <span className="w-6 h-6 bg-black text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">1</span>
-              <p className="text-sm font-medium">{t.pwaIosStep1}</p>
-            </div>
-            <div className="flex items-start gap-3">
-              <span className="w-6 h-6 bg-black text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">2</span>
-              <p className="text-sm font-medium">{t.pwaIosStep2}</p>
-            </div>
-          </div>
-        );
-
-      case 'firefox-desktop':
-        return (
-          <div className="text-left w-full space-y-4">
-            {/* Visual icon hint */}
-            <div className="flex items-center gap-3 px-3 py-2 border border-black/15 bg-black/[0.04]">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-black/50">Look for:</span>
-              <span className="inline-flex items-center gap-2 bg-black text-white px-2 py-1">
-                <svg
-                  width="13"
-                  height="13"
-                  viewBox="0 0 32 32"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <rect x="3" y="3" width="26" height="26" rx="3" stroke="currentColor" strokeWidth="2.5" fill="none" />
-                  <line x1="16" y1="9" x2="16" y2="20" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-                  <polyline points="11,16 16,22 21,16" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                  <line x1="10" y1="25" x2="22" y2="25" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-                </svg>
-                <span className="text-[10px] font-mono font-bold tracking-wider uppercase">Install</span>
-              </span>
-            </div>
-            {/* Steps */}
-            <div className="flex items-start gap-3">
-              <span className="w-6 h-6 bg-black text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">1</span>
-              <p className="text-sm font-medium">{t.pwaFirefoxDesktopStep1}</p>
-            </div>
-            <div className="flex items-start gap-3">
-              <span className="w-6 h-6 bg-black text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">2</span>
-              <p className="text-sm font-medium">{t.pwaFirefoxDesktopStep2}</p>
-            </div>
-            <div className="flex items-start gap-3">
-              <span className="w-6 h-6 bg-black text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">3</span>
-              <p className="text-sm font-medium">{t.pwaFirefoxDesktopStep3}</p>
-            </div>
-          </div>
-        );
-
-      case 'firefox-mobile':
-        return <p className="text-sm font-medium text-left w-full">{t.pwaFirefoxMobileStep}</p>;
-      case 'safari-desktop':
-        return <p className="text-sm font-medium text-left w-full">{t.pwaSafariDesktopStep}</p>;
-      case 'chromium-mobile':
-        return <p className="text-sm font-medium text-left w-full">{t.pwaChromiumMobileStep}</p>;
-    }
-  };
+  const title = isRtl ? "تثبيت سناب هيك" : "Install SnapHeic";
+  const desc = isRtl 
+    ? "استخدم التطبيق على سطح المكتب لتحويل أسرع وبدون إنترنت." 
+    : "Use SnapHeic as a desktop app for faster local HEIC conversions.";
+  const btnGotIt = isRtl ? "فهمت ذلك" : "Got it";
+  const btnContinue = isRtl ? "المتابعة في المتصفح" : "Continue in browser";
 
   return (
     <>
-      {/* Floating arrow overlay: only for Firefox Desktop — points toward address bar area */}
-      {isFirefoxDesktop && <FloatingArrow />}
+      {type === 'firefox-desktop' && <ElegantInstallHint />}
 
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
-        dir={lang === 'ar' ? 'rtl' : 'ltr'}
+        transition={{ duration: 0.4 }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm"
+        dir={isRtl ? 'rtl' : 'ltr'}
         onClick={onDismiss}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
       >
         <motion.div
-          initial={{ scale: 0.95, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.95, opacity: 0 }}
-          transition={{ type: 'spring', stiffness: 260, damping: 28 }}
-          className="technical-border p-6 max-w-sm w-full relative bg-white"
+          ref={modalRef}
+          initial={{ scale: 0.96, opacity: 0, y: 20 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.96, opacity: 0, y: 20 }}
+          transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+          className="bg-white p-8 md:p-10 max-w-[400px] w-full shadow-[0_32px_64px_-12px_rgba(0,0,0,0.3)] border border-black/10 flex flex-col gap-8 relative outline-none"
           onClick={(e) => e.stopPropagation()}
+          tabIndex={-1}
         >
-          <button
-            onClick={onDismiss}
-            className="absolute top-3 right-3 p-1 hover:opacity-60 transition-opacity"
-            aria-label={t.pwaManualDismiss}
-          >
-            <X size={16} />
-          </button>
-
-          <div className="flex flex-col items-center text-center gap-5">
-            <div className="p-3 bg-black text-white">
-              {getIcon()}
+          {/* Header */}
+          <div className="flex flex-col items-center gap-6 text-center">
+            <SnapHeicLogo size={36} />
+            <div className="space-y-3">
+              <h2 id="modal-title" className="text-2xl font-extrabold tracking-tight text-black">
+                {title}
+              </h2>
+              <p className="text-[14px] text-black/60 leading-relaxed max-w-[280px] mx-auto font-medium">
+                {desc}
+              </p>
             </div>
+          </div>
 
-            <h3 className="font-bold text-sm uppercase tracking-widest">
-              {getTitle()}
-            </h3>
+          {/* Steps */}
+          <div className="w-full space-y-5 px-2">
+            {steps.map((step, index) => (
+              <div key={index} className="flex items-start gap-4">
+                <span className="w-6 h-6 bg-black/5 text-black text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5 border border-black/10">
+                  {index + 1}
+                </span>
+                <p className="text-[13.5px] text-black/80 font-medium leading-relaxed pt-0.5">{step}</p>
+              </div>
+            ))}
+          </div>
 
-            {getContent()}
-
+          {/* Actions */}
+          <div className="flex flex-col w-full gap-2 pt-4">
             <button
               onClick={onDismiss}
-              className="bg-black text-white font-bold text-[10px] uppercase px-6 py-3 tracking-wider hover:bg-black/90 transition-colors"
+              className="w-full bg-black text-white font-bold text-[11px] uppercase px-6 py-4 tracking-widest hover:bg-black/90 transition-all shadow-[0_8px_16px_-4px_rgba(0,0,0,0.3)] hover:shadow-[0_12px_24px_-4px_rgba(0,0,0,0.4)] focus:ring-2 focus:ring-black focus:ring-offset-2 outline-none"
             >
-              {t.pwaManualDismiss}
+              {btnGotIt}
+            </button>
+            <button
+              onClick={() => {
+                onPermanentDismiss?.();
+                onDismiss();
+              }}
+              className="w-full text-black/40 hover:text-black font-semibold text-[12px] transition-colors py-3 focus:outline-none focus:text-black"
+            >
+              {btnContinue}
             </button>
           </div>
         </motion.div>
