@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Language } from '../translations';
 import logoIcon from '../assets/logo-icon.svg';
 
@@ -12,36 +12,43 @@ interface PWAInstallModalProps {
   onPermanentDismiss?: () => void;
 }
 
-const SnapHeicLogo = ({ size = 32 }: { size?: number }) => (
-  <div className="relative inline-flex items-center justify-center bg-black text-white p-2 shadow-[0_8px_16px_-4px_rgba(0,0,0,0.2)]" style={{ width: size + 12, height: size + 12 }}>
+const SnapHeicLogo = ({ size = 28 }: { size?: number }) => (
+  <div className="relative inline-flex items-center justify-center bg-black text-white p-1.5 shadow-sm rounded-md" style={{ width: size + 10, height: size + 10 }}>
     <img src={logoIcon} style={{ width: size, height: size }} alt="SnapHeic" />
   </div>
 );
 
 const ElegantInstallHint = () => (
   <motion.div
-    initial={{ opacity: 0, y: 10 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: -10 }}
-    transition={{ delay: 0.6, duration: 0.8, ease: "easeOut" }}
+    initial={{ opacity: 0, scale: 0.9, y: 10 }}
+    animate={{ opacity: 1, scale: 1, y: 0 }}
+    exit={{ opacity: 0, scale: 0.9, y: -10 }}
+    transition={{ delay: 0.4, duration: 0.5, ease: "easeOut" }}
     style={{
       position: 'fixed',
-      top: 12,
-      right: 140, // Points exactly under the Firefox install icon area
+      top: 16,
+      right: 140, // Points approximately at the Firefox install icon
       zIndex: 60,
       pointerEvents: 'none',
     }}
   >
     <motion.div
-      animate={{ y: [0, -4, 0] }}
-      transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
-      className="flex flex-col items-center gap-2"
+      animate={{ y: [0, -3, 0] }}
+      transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+      className="flex flex-col items-center gap-1.5"
     >
-      {/* Upward pointing elegant indicator */}
-      <div className="w-0 h-0 border-l-[6px] border-r-[6px] border-b-[8px] border-l-transparent border-r-transparent border-b-black" />
-      <div className="bg-black text-white text-[10px] uppercase tracking-widest px-4 py-2 font-bold shadow-[0_12px_32px_-8px_rgba(0,0,0,0.5)]">
+      {/* Upward pointing triangle */}
+      <div className="w-0 h-0 border-l-[5px] border-r-[5px] border-b-[6px] border-l-transparent border-r-transparent border-b-black/90" />
+      <div className="bg-black/90 text-white text-[9px] uppercase tracking-widest px-3 py-1.5 font-bold shadow-lg rounded-sm backdrop-blur-md">
         Install App
       </div>
+      {/* Subtle pulse effect */}
+      <motion.div 
+        animate={{ scale: [1, 1.5], opacity: [0.5, 0] }}
+        transition={{ repeat: Infinity, duration: 2, ease: "easeOut" }}
+        className="absolute top-0 w-8 h-8 bg-black/20 rounded-full -z-10 blur-sm pointer-events-none"
+        style={{ marginTop: -10 }}
+      />
     </motion.div>
   </motion.div>
 );
@@ -56,7 +63,6 @@ export function PWAInstallModal({ type, lang, onDismiss, onPermanentDismiss }: P
       if (e.key === 'Escape') onDismiss();
     };
     document.addEventListener('keydown', handleKeyDown);
-    // Auto-focus the modal for accessibility
     if (modalRef.current) {
       modalRef.current.focus();
     }
@@ -106,14 +112,16 @@ export function PWAInstallModal({ type, lang, onDismiss, onPermanentDismiss }: P
 
   return (
     <>
-      {type === 'firefox-desktop' && <ElegantInstallHint />}
+      <AnimatePresence>
+        {type === 'firefox-desktop' && <ElegantInstallHint />}
+      </AnimatePresence>
 
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.4 }}
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm"
+        transition={{ duration: 0.3 }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/5 backdrop-blur-[2px]"
         dir={isRtl ? 'rtl' : 'ltr'}
         onClick={onDismiss}
         role="dialog"
@@ -122,44 +130,44 @@ export function PWAInstallModal({ type, lang, onDismiss, onPermanentDismiss }: P
       >
         <motion.div
           ref={modalRef}
-          initial={{ scale: 0.96, opacity: 0, y: 20 }}
+          initial={{ scale: 0.97, opacity: 0, y: 10 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.96, opacity: 0, y: 20 }}
-          transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-          className="bg-white p-8 md:p-10 max-w-[400px] w-full shadow-[0_32px_64px_-12px_rgba(0,0,0,0.3)] border border-black/10 flex flex-col gap-8 relative outline-none"
+          exit={{ scale: 0.97, opacity: 0, y: 10 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+          className="bg-white p-8 max-w-[340px] w-full shadow-[0_16px_40px_-12px_rgba(0,0,0,0.15)] border border-black/5 rounded-[12px] flex flex-col gap-6 relative outline-none"
           onClick={(e) => e.stopPropagation()}
           tabIndex={-1}
         >
           {/* Header */}
-          <div className="flex flex-col items-center gap-6 text-center">
-            <SnapHeicLogo size={36} />
-            <div className="space-y-3">
-              <h2 id="modal-title" className="text-2xl font-extrabold tracking-tight text-black">
+          <div className="flex flex-col items-center gap-4 text-center">
+            <SnapHeicLogo size={32} />
+            <div className="space-y-1.5">
+              <h2 id="modal-title" className="text-[22px] font-black tracking-tight text-black leading-none">
                 {title}
               </h2>
-              <p className="text-[14px] text-black/60 leading-relaxed max-w-[280px] mx-auto font-medium">
+              <p className="text-[13px] text-black/50 leading-snug max-w-[260px] mx-auto font-medium">
                 {desc}
               </p>
             </div>
           </div>
 
           {/* Steps */}
-          <div className="w-full space-y-5 px-2">
+          <div className="w-full space-y-4 px-1 py-2">
             {steps.map((step, index) => (
-              <div key={index} className="flex items-start gap-4">
-                <span className="w-6 h-6 bg-black/5 text-black text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5 border border-black/10">
+              <div key={index} className="flex items-start gap-3">
+                <span className="w-5 h-5 rounded-[4px] bg-black/5 text-black/70 text-[9px] font-bold flex items-center justify-center shrink-0 mt-[1px] border border-black/5">
                   {index + 1}
                 </span>
-                <p className="text-[13.5px] text-black/80 font-medium leading-relaxed pt-0.5">{step}</p>
+                <p className="text-[13px] text-black/80 font-medium leading-tight pt-[2px]">{step}</p>
               </div>
             ))}
           </div>
 
           {/* Actions */}
-          <div className="flex flex-col w-full gap-2 pt-4">
+          <div className="flex flex-col w-full gap-2 mt-1">
             <button
               onClick={onDismiss}
-              className="w-full bg-black text-white font-bold text-[11px] uppercase px-6 py-4 tracking-widest hover:bg-black/90 transition-all shadow-[0_8px_16px_-4px_rgba(0,0,0,0.3)] hover:shadow-[0_12px_24px_-4px_rgba(0,0,0,0.4)] focus:ring-2 focus:ring-black focus:ring-offset-2 outline-none"
+              className="w-full bg-black text-white font-bold text-[11px] uppercase px-5 py-3 tracking-widest rounded-md hover:bg-black/90 active:scale-[0.98] transition-all shadow-sm focus:ring-2 focus:ring-black/20 outline-none"
             >
               {btnGotIt}
             </button>
@@ -168,7 +176,7 @@ export function PWAInstallModal({ type, lang, onDismiss, onPermanentDismiss }: P
                 onPermanentDismiss?.();
                 onDismiss();
               }}
-              className="w-full text-black/40 hover:text-black font-semibold text-[12px] transition-colors py-3 focus:outline-none focus:text-black"
+              className="w-full text-black/40 hover:text-black font-semibold text-[11px] rounded-md transition-colors py-2.5 active:scale-[0.98] focus:outline-none"
             >
               {btnContinue}
             </button>

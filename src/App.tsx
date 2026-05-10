@@ -1,9 +1,4 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { 
   Upload, 
   Trash2, 
@@ -16,7 +11,10 @@ import {
   ShieldCheck,
   X,
   MonitorDown,
-  ArrowDown
+  ArrowDown,
+  Lock,
+  Zap,
+  Check
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import heic2any from 'heic2any';
@@ -44,8 +42,14 @@ interface ConversionItem {
   format: ConversionFormat;
 }
 
+interface Toast {
+  id: string;
+  message: string;
+  type: 'success' | 'error' | 'info';
+}
+
 const SnapHeicLogo = ({ size = 28 }: { size?: number }) => (
-  <div className="relative inline-flex items-center justify-center bg-black text-white p-1 overflow-hidden" style={{ width: size + 8, height: size + 8 }}>
+  <div className="relative inline-flex items-center justify-center bg-black text-white p-1 overflow-hidden shadow-sm rounded-md" style={{ width: size + 8, height: size + 8 }}>
     <img src={logoIcon} style={{ width: size, height: size }} alt="SnapHeic" />
     <motion.div 
       initial={{ x: -size }}
@@ -64,8 +68,10 @@ export default function App() {
   const [globalFormat, setGlobalFormat] = useState<ConversionFormat>('image/jpeg');
   const quality = 0.9;
   const [isDragging, setIsDragging] = useState(false);
-  const [validationError, setValidationError] = useState<string | null>(null);
+  
+  const [toasts, setToasts] = useState<Toast[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const { isInstallable, isInstalled, installationPath, triggerInstall, dismissInstall } = usePWAInstall();
   const [dismissedPwaGuide, setDismissedPwaGuide] = useState(() => {
     return localStorage.getItem('snapheic_pwa_dismissed') === 'true';
@@ -73,14 +79,45 @@ export default function App() {
   const [hasEngaged, setHasEngaged] = useState(false);
   const showPwaGuide = hasEngaged && installationPath !== 'CHROMIUM' && installationPath !== 'CHROMIUM_MOBILE' && installationPath !== 'INSTALLED' && !dismissedPwaGuide;
 
+  const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    const id = Math.random().toString(36).substring(7);
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, 4000);
+  }, []);
+
   const handlePermanentDismiss = () => {
     setDismissedPwaGuide(true);
     localStorage.setItem('snapheic_pwa_dismissed', 'true');
   };
 
+  // Keyboard Shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Cmd+O / Ctrl+O to open file picker
+      if ((e.metaKey || e.ctrlKey) && e.key === 'o') {
+        e.preventDefault();
+        fileInputRef.current?.click();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Listen to PWA installation success if browser emits it natively (Chrome)
+  useEffect(() => {
+    const handleAppInstalled = () => {
+      showToast("App installed successfully!", "success");
+      setDismissedPwaGuide(true);
+    };
+    window.addEventListener('appinstalled', handleAppInstalled);
+    return () => window.removeEventListener('appinstalled', handleAppInstalled);
+  }, [showToast]);
+
   const addFiles = useCallback((files: FileList | File[]) => {
     const allFiles = Array.from(files);
-    const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB size limit to prevent memory exhaustion
+    const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB size limit
     
     const validHeicFiles = allFiles.filter(file => {
       const name = file.name.toLowerCase();
@@ -90,8 +127,7 @@ export default function App() {
     });
 
     if (validHeicFiles.length < allFiles.length) {
-      setValidationError(t.filesSkipped);
-      setTimeout(() => setValidationError(null), 4000);
+      showToast(t.filesSkipped, 'error');
     }
 
     if (validHeicFiles.length === 0) return;
@@ -99,15 +135,15 @@ export default function App() {
     const newItems: ConversionItem[] = validHeicFiles.map(file => ({
       id: Math.random().toString(36).substring(7),
       file,
-      previewUrl: URL.createObjectURL(file), // Note: HEIC won't show in browser normally, this is just a placeholder reference
+      previewUrl: URL.createObjectURL(file),
       status: 'idle',
       progress: 0,
       format: globalFormat
     }));
 
     setItems(prev => [...prev, ...newItems]);
-    setHasEngaged(true); // User has engaged with the app
-  }, [globalFormat, t]);
+    setHasEngaged(true); // Trigger engagement state
+  }, [globalFormat, t, showToast]);
 
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -160,7 +196,6 @@ export default function App() {
       } : i));
     } catch (err: any) {
       console.error("Local conversion error:", err);
-      // Sanitize error message to prevent technical information disclosure in UI
       const errorMessage = t.conversionFailed || "Conversion securely failed.";
 
       setItems(prev => prev.map(i => i.id === id ? { 
@@ -181,7 +216,6 @@ export default function App() {
     const link = document.createElement('a');
     link.href = item.resultUrl;
     const extension = item.format === 'image/jpeg' ? 'jpg' : 'png';
-    // Sanitize filename to prevent malicious or malformed file saves
     const sanitizedName = item.file.name
       .replace(/[^a-zA-Z0-9_\-\.]/g, '_')
       .replace(/\.(heic|heif)$/i, `.${extension}`);
@@ -217,19 +251,39 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen p-4 md:p-8 max-w-5xl mx-auto flex flex-col gap-8" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+    <div className="min-h-screen pt-8 pb-4 md:pt-16 md:pb-8 px-4 md:px-8 max-w-5xl mx-auto flex flex-col gap-10" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+      {/* Toast Overlay */}
+      <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-2 pointer-events-none">
+        <AnimatePresence>
+          {toasts.map(toast => (
+            <motion.div
+              key={toast.id}
+              initial={{ opacity: 0, y: -20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.95 }}
+              className="pointer-events-auto bg-black text-white px-4 py-3 rounded-lg shadow-xl flex items-center gap-3 text-sm font-medium"
+            >
+              {toast.type === 'error' && <AlertCircle size={16} className="text-red-400" />}
+              {toast.type === 'success' && <CheckCircle size={16} className="text-green-400" />}
+              {toast.type === 'info' && <AlertCircle size={16} className="text-white/60" />}
+              {toast.message}
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+
       {/* Header */}
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div className="flex flex-col md:flex-row md:items-end gap-4 w-full justify-between">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="flex flex-col md:flex-row md:items-end gap-6 w-full justify-between">
           <div 
             className="cursor-pointer group flex flex-col"
             onClick={() => setView('converter')}
           >
-            <h1 className="text-4xl font-bold tracking-tighter flex items-center gap-2 text-black">
+            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight flex items-center gap-3 text-black">
               <SnapHeicLogo />
               {t.title}
             </h1>
-            <p className="mono-label mt-1 text-black">
+            <p className="text-sm font-medium text-black/50 mt-1">
               {t.subtitle}
             </p>
           </div>
@@ -237,13 +291,13 @@ export default function App() {
           <div className="flex items-center gap-2">
             <button 
               onClick={() => setLang('en')} 
-              className={`px-3 py-1 text-[10px] font-mono border transition-all ${lang === 'en' ? 'bg-black text-white border-black' : 'border-black/20 hover:border-black text-black'}`}
+              className={`px-3 py-1.5 text-[10px] rounded-md font-mono border transition-all active:scale-[0.98] ${lang === 'en' ? 'bg-black text-white border-black shadow-sm' : 'border-black/10 hover:border-black/30 text-black/70 hover:text-black bg-white'}`}
             >
               EN
             </button>
             <button 
               onClick={() => setLang('ar')} 
-              className={`px-3 py-1 text-[10px] font-mono border transition-all ${lang === 'ar' ? 'bg-black text-white border-black' : 'border-black/20 hover:border-black text-black'}`}
+              className={`px-3 py-1.5 text-[10px] rounded-md font-mono border transition-all active:scale-[0.98] ${lang === 'ar' ? 'bg-black text-white border-black shadow-sm' : 'border-black/10 hover:border-black/30 text-black/70 hover:text-black bg-white'}`}
             >
               AR
             </button>
@@ -251,13 +305,13 @@ export default function App() {
         </div>
         
         {view === 'converter' && (
-          <div className="flex items-center gap-4 p-3 technical-border">
-            <div className="flex flex-col gap-1">
-              <span className="mono-label">{t.outputFormat}</span>
+          <div className="flex items-center gap-4 px-4 py-2 bg-white rounded-lg border border-black/10 shadow-sm shrink-0">
+            <div className="flex flex-col">
+              <span className="mono-label !text-[9px] mb-0.5">{t.outputFormat}</span>
               <select 
                 value={globalFormat}
                 onChange={(e) => setGlobalFormat(e.target.value as ConversionFormat)}
-                className="bg-transparent border-none text-sm font-bold focus:ring-0 cursor-pointer text-black"
+                className="bg-transparent border-none p-0 text-sm font-bold focus:ring-0 cursor-pointer text-black outline-none"
               >
                 <option value="image/jpeg">JPEG (.jpg)</option>
                 <option value="image/png">PNG (.png)</option>
@@ -268,31 +322,21 @@ export default function App() {
       </header>
 
       {view === 'converter' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_1.2fr] gap-8 items-start">
           {/* Left Column: Upload Area */}
           <div className="flex flex-col">
-            <AnimatePresence>
-              {validationError && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="p-3 flex items-center gap-2 overflow-hidden mb-4 technical-border"
-                >
-                  <AlertCircle size={14} className="text-black" />
-                  <span className="mono-label text-black opacity-100 lowercase font-bold">{validationError}</span>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <div 
+            <motion.div 
               onDrop={onDrop}
               onDragOver={onDragOver}
               onDragLeave={onDragLeave}
               onClick={() => fileInputRef.current?.click()}
+              animate={{ 
+                scale: isDragging ? 0.98 : 1,
+                borderColor: isDragging ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.1)'
+              }}
               className={`
-                relative h-[400px] flex flex-col items-center justify-center gap-6 cursor-pointer transition-all technical-border
-                ${isDragging ? 'bg-black/5' : 'hover:bg-black/[0.02]'}
+                relative h-[420px] flex flex-col items-center justify-center p-6 cursor-pointer transition-colors technical-border group overflow-hidden
+                ${isDragging ? 'bg-black/5 border-dashed border-2' : 'bg-white hover:bg-black/[0.02]'}
               `}
             >
               <input 
@@ -303,12 +347,20 @@ export default function App() {
                 accept=".heic,.heif"
                 onChange={(e) => e.target.files && addFiles(e.target.files)}
               />
-              <Upload size={32} strokeWidth={1} className="text-black" />
-              <div className="text-center flex flex-col items-center">
-                <h2 className="font-bold text-xl tracking-tight mb-2 text-black">{t.dropFiles}</h2>
-                <p className="text-sm text-black/60 mb-6">{t.dropFilesSubtitle}</p>
+              
+              <motion.div 
+                animate={{ y: isDragging ? -10 : 0 }}
+                className="flex flex-col items-center justify-center"
+              >
+                <div className="w-16 h-16 bg-black/5 rounded-full flex items-center justify-center mb-6 text-black/80 group-hover:bg-black/10 transition-colors shadow-sm">
+                  <Upload size={28} strokeWidth={1.5} />
+                </div>
+                
+                <h2 className="font-extrabold text-[22px] tracking-tight mb-2 text-black text-center">{t.dropFiles}</h2>
+                <p className="text-[13px] font-medium text-black/50 mb-8 text-center max-w-[240px] leading-snug">{t.dropFilesSubtitle}</p>
+                
                 <button 
-                  className="bg-black text-white font-bold text-xs uppercase px-6 py-3 tracking-wider hover:bg-black/90 transition-colors"
+                  className="bg-black text-white font-bold text-[11px] rounded-md uppercase px-8 py-3.5 tracking-widest hover:bg-black/80 active:scale-[0.98] transition-all shadow-md focus:ring-2 focus:ring-black/20 focus:outline-none"
                   onClick={(e) => {
                     e.stopPropagation();
                     fileInputRef.current?.click();
@@ -316,27 +368,37 @@ export default function App() {
                 >
                   {t.browseFiles}
                 </button>
+              </motion.div>
+
+              {/* Badges / Microcopy */}
+              <div className="absolute bottom-6 flex gap-3 text-[10px] font-semibold text-black/40">
+                <div className="flex items-center gap-1.5 bg-black/5 px-2 py-1 rounded-sm"><ShieldCheck size={12} /> 100% Local</div>
+                <div className="flex items-center gap-1.5 bg-black/5 px-2 py-1 rounded-sm"><Zap size={12} /> Fast</div>
+                <div className="hidden sm:flex items-center gap-1.5 bg-black/5 px-2 py-1 rounded-sm border border-black/5">⌘O / Ctrl+O</div>
               </div>
-            </div>
+            </motion.div>
           </div>
 
           {/* Right Column: Queue */}
           <div className="flex flex-col">
-            <div className="border-b border-black pb-3 mb-4 flex justify-between items-end">
-              <h2 className="font-bold text-sm uppercase tracking-widest text-black">{t.queueTitle} ({items.length})</h2>
+            <div className="border-b border-black/10 pb-4 mb-5 flex justify-between items-end px-1">
+              <h2 className="font-bold text-xs uppercase tracking-widest text-black/60 flex items-center gap-2">
+                {t.queueTitle} 
+                <span className="bg-black/10 text-black px-1.5 py-0.5 rounded-sm text-[9px]">{items.length}</span>
+              </h2>
               {items.length > 0 && (
                 <div className="flex gap-4">
                   <button 
                     onClick={convertAll}
                     disabled={items.every(i => i.status === 'completed' || i.status === 'converting')}
-                    className="text-[10px] font-bold font-mono uppercase text-black hover:underline disabled:opacity-30"
+                    className="text-[10px] font-bold uppercase tracking-widest text-black hover:text-black/70 active:scale-[0.98] transition-all disabled:opacity-30"
                   >
                     {t.convertAll}
                   </button>
                   <button 
                     onClick={downloadAll}
                     disabled={!items.some(i => i.status === 'completed')}
-                    className="text-[10px] font-bold font-mono uppercase text-black hover:underline disabled:opacity-30"
+                    className="text-[10px] font-bold uppercase tracking-widest text-black hover:text-black/70 active:scale-[0.98] transition-all disabled:opacity-30"
                   >
                     {t.downloadAll}
                   </button>
@@ -348,7 +410,7 @@ export default function App() {
                       });
                       setItems([]);
                     }}
-                    className="text-[10px] font-mono uppercase text-black/50 hover:text-black transition-colors"
+                    className="text-[10px] font-bold uppercase tracking-widest text-black/40 hover:text-red-500 active:scale-[0.98] transition-colors"
                   >
                     {t.clearQueue}
                   </button>
@@ -362,13 +424,14 @@ export default function App() {
                   <motion.div
                     layout
                     key={item.id}
-                    initial={{ opacity: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.98 }}
-                    className="flex items-center justify-between p-3 gap-4 group technical-border"
+                    initial={{ opacity: 0, scale: 0.98, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.98, y: -10 }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 40 }}
+                    className="flex items-center justify-between p-3 gap-4 group technical-border !shadow-sm hover:!shadow-md transition-shadow"
                   >
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className="w-10 h-10 bg-black/5 flex items-center justify-center shrink-0 border border-black/10">
+                      <div className="w-10 h-10 bg-black/[0.03] rounded-md flex items-center justify-center shrink-0 border border-black/5 overflow-hidden">
                         {item.status === 'completed' && item.resultUrl ? (
                           <img 
                             src={item.resultUrl} 
@@ -381,34 +444,34 @@ export default function App() {
                       </div>
                       <div className="flex flex-col min-w-0 text-black">
                         <span className="font-bold truncate text-xs">{item.file.name}</span>
-                        <span className="text-[10px] font-mono opacity-50">{(item.file.size / (1024 * 1024)).toFixed(2)} MB</span>
+                        <span className="text-[10px] font-mono opacity-50 font-medium">{(item.file.size / (1024 * 1024)).toFixed(2)} MB</span>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-4 px-2 flex-1">
                       {item.status === 'converting' ? (
                         <div className="flex items-center gap-2 w-full">
-                          <Loader2 size={14} className="animate-spin text-black" />
-                          <div className="flex-1 h-1 bg-black/10">
+                          <Loader2 size={14} className="animate-spin text-black/60" />
+                          <div className="flex-1 h-1.5 bg-black/5 rounded-full overflow-hidden">
                             <motion.div 
                               initial={{ width: 0 }}
                               animate={{ width: `${item.progress}%` }}
-                              className="h-full bg-black"
+                              className="h-full bg-black rounded-full"
                             />
                           </div>
                         </div>
                       ) : item.status === 'completed' ? (
-                        <span className="flex items-center gap-1.5 text-black font-bold text-[10px] uppercase tracking-wider">
-                          <CheckCircle size={14} strokeWidth={1.5} /> 
+                        <span className="flex items-center gap-1.5 text-black font-bold text-[10px] uppercase tracking-wider bg-black/5 px-2 py-1 rounded-sm">
+                          <Check size={12} strokeWidth={2.5} /> 
                           {t.converted}
                         </span>
                       ) : item.status === 'error' ? (
-                        <span className="flex items-center gap-1.5 text-black font-bold text-[10px] uppercase tracking-wider">
-                          <AlertCircle size={14} strokeWidth={1.5} />
+                        <span className="flex items-center gap-1.5 text-red-500 font-bold text-[10px] uppercase tracking-wider bg-red-50 px-2 py-1 rounded-sm">
+                          <AlertCircle size={12} strokeWidth={2} />
                           {t.failed}
                         </span>
                       ) : (
-                        <span className="text-[10px] font-mono opacity-50 uppercase tracking-widest text-black">{t.ready}</span>
+                        <span className="text-[10px] font-bold opacity-40 uppercase tracking-widest text-black">{t.ready}</span>
                       )}
                     </div>
 
@@ -416,7 +479,7 @@ export default function App() {
                       {item.status === 'completed' ? (
                         <button 
                           onClick={() => downloadItem(item)}
-                          className="p-1.5 hover:bg-black hover:text-white transition-all border border-black text-black"
+                          className="p-1.5 hover:bg-black rounded-md hover:text-white transition-all border border-black/10 hover:border-black text-black active:scale-95"
                         >
                           <Download size={14} />
                         </button>
@@ -424,14 +487,14 @@ export default function App() {
                         <button 
                           onClick={() => convertItem(item.id)}
                           disabled={item.status === 'converting'}
-                          className="p-1.5 hover:bg-black hover:text-white transition-all border border-transparent hover:border-black group text-black"
+                          className="p-1.5 hover:bg-black rounded-md hover:text-white transition-all border border-black/5 hover:border-black text-black active:scale-95 disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-black disabled:hover:border-black/5"
                         >
-                          <Plus size={14} className="group-hover:rotate-90 transition-transform" />
+                          <Plus size={14} className={item.status !== 'converting' ? "group-hover:rotate-90 transition-transform" : ""} />
                         </button>
                       )}
                       <button 
                         onClick={() => removeItem(item.id)}
-                        className="p-1.5 text-black hover:bg-black hover:text-white transition-all border border-transparent hover:border-black"
+                        className="p-1.5 text-black/40 hover:bg-red-50 rounded-md hover:text-red-500 transition-all border border-transparent hover:border-red-200 active:scale-95"
                       >
                         <X size={14} />
                       </button>
@@ -441,8 +504,12 @@ export default function App() {
               </AnimatePresence>
 
               {items.length === 0 && (
-                <div className="h-[200px] flex items-center justify-center technical-border">
-                  <span className="text-black font-bold text-sm uppercase tracking-widest">QUEUE IS EMPTY</span>
+                <div className="h-[240px] flex flex-col gap-3 items-center justify-center bg-white border border-black/5 rounded-lg shadow-sm">
+                  <div className="w-12 h-12 bg-black/[0.02] rounded-full flex items-center justify-center text-black/20 mb-2">
+                    <CheckCircle size={20} />
+                  </div>
+                  <span className="text-black/40 font-bold text-[11px] uppercase tracking-widest">No files in queue</span>
+                  <span className="text-black/30 font-medium text-[12px] max-w-[200px] text-center leading-tight">Drag and drop HEIC files here to get started</span>
                 </div>
               )}
             </div>
@@ -452,25 +519,25 @@ export default function App() {
         <PrivacyPolicy onBack={() => setView('converter')} lang={lang} />
       )}
 
-      <footer className="mt-auto pt-12 pb-4">
-        <div className="border-t border-black/10 pt-4 flex flex-col md:flex-row justify-between items-center gap-4">
+      <footer className="mt-auto pt-16">
+        <div className="border-t border-black/10 pt-6 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex flex-col gap-1 items-center md:items-start text-black">
             <div 
-              className="flex items-center gap-2 cursor-pointer hover:opacity-100 opacity-60 transition-opacity"
+              className="flex items-center gap-2 cursor-pointer hover:opacity-100 opacity-50 transition-opacity"
               onClick={() => setView('privacy')}
             >
               <ShieldCheck size={14} />
-              <span className="mono-label opacity-100">{t.privacyFooter}</span>
+              <span className="mono-label !opacity-100">{t.privacyFooter}</span>
             </div>
-            <span className="mono-label !opacity-40 text-[9px]">{t.createdBy}</span>
+            <span className="mono-label !opacity-40 !text-[9px] mt-1">{t.createdBy}</span>
           </div>
-          <div className="flex gap-4 items-center">
-            <button onClick={() => setView('privacy')} className="mono-label hover:text-black transition-colors text-black">{t.privacyPolicy}</button>
+          <div className="flex gap-5 items-center">
+            <button onClick={() => setView('privacy')} className="mono-label hover:text-black hover:opacity-100 transition-all text-black">{t.privacyPolicy}</button>
             <a
               href="https://github.com/kararha/snapH"
               target="_blank"
               rel="noopener noreferrer"
-              className="mono-label hover:text-black transition-colors flex items-center gap-1 text-black"
+              className="mono-label hover:text-black hover:opacity-100 transition-all flex items-center gap-1.5 text-black"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12z"/></svg>
               View on GitHub
@@ -478,6 +545,7 @@ export default function App() {
           </div>
         </div>
       </footer>
+
       {/* PWA Install Banners */}
       <AnimatePresence>
         {isInstallable && (
@@ -485,21 +553,23 @@ export default function App() {
             initial={{ y: 120, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 120, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 260, damping: 28 }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md"
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-sm"
             role="status"
             aria-live="polite"
           >
-            <div className="bg-black text-white technical-border flex items-center gap-4 p-4 shadow-2xl">
-              <MonitorDown size={20} className="shrink-0" />
+            <div className="bg-white border border-black/10 rounded-xl flex items-center gap-4 p-4 shadow-xl">
+              <div className="w-10 h-10 bg-black/5 rounded-full flex items-center justify-center shrink-0">
+                <MonitorDown size={18} className="text-black" />
+              </div>
               <div className="flex flex-col flex-1 min-w-0">
-                <span className="font-bold text-sm uppercase tracking-widest">{t.pwaInstallTitle}</span>
-                <span className="text-[10px] font-mono opacity-60 mt-0.5">{t.pwaInstallDesc}</span>
+                <span className="font-bold text-[13px] text-black leading-tight mb-0.5">{t.pwaInstallTitle}</span>
+                <span className="text-[11px] font-medium text-black/50 leading-snug">{t.pwaInstallDesc}</span>
               </div>
               <button
                 id="pwa-install-btn"
                 onClick={triggerInstall}
-                className="shrink-0 bg-white text-black font-bold text-[10px] uppercase px-4 py-2 tracking-wider hover:bg-white/90 transition-colors"
+                className="shrink-0 bg-black text-white font-bold text-[10px] uppercase px-4 py-2.5 rounded-md tracking-wider hover:bg-black/80 active:scale-[0.96] transition-all shadow-sm"
               >
                 {t.pwaInstallButton}
               </button>
@@ -507,9 +577,9 @@ export default function App() {
                 id="pwa-dismiss-btn"
                 onClick={dismissInstall}
                 aria-label={t.pwaInstallDismiss}
-                className="shrink-0 p-1.5 opacity-50 hover:opacity-100 transition-opacity"
+                className="absolute -top-2 -right-2 w-6 h-6 bg-white border border-black/10 rounded-full flex items-center justify-center text-black/40 hover:text-black shadow-sm transition-colors"
               >
-                <X size={14} />
+                <X size={12} />
               </button>
             </div>
           </motion.div>
@@ -531,39 +601,8 @@ export default function App() {
           <PWAInstallModal type="safari-desktop" lang={lang} onDismiss={() => setDismissedPwaGuide(true)} onPermanentDismiss={handlePermanentDismiss} />
         )}
 
-        {/* Chromium Mobile fallback: shown only after native install banner is dismissed */}
         {!isInstallable && installationPath === 'CHROMIUM_MOBILE' && !isInstalled && !dismissedPwaGuide && hasEngaged && (
           <PWAInstallModal type="chromium-mobile" lang={lang} onDismiss={() => setDismissedPwaGuide(true)} onPermanentDismiss={handlePermanentDismiss} />
-        )}
-
-        {showPwaGuide && installationPath === 'OTHER' && (
-          <motion.div
-            initial={{ y: 120, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 120, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 260, damping: 28 }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md"
-            role="status"
-            aria-live="polite"
-          >
-            <div className="bg-black text-white technical-border flex items-center gap-4 p-4 shadow-2xl">
-              <MonitorDown size={20} className="shrink-0" />
-              <div className="flex flex-col flex-1 min-w-0">
-                <span className="font-bold text-sm uppercase tracking-widest">{t.pwaManualTitle}</span>
-                <span className="text-[10px] font-mono opacity-60 mt-0.5 flex items-center gap-1">
-                  <ArrowDown size={10} className="animate-bounce" />
-                  {t.pwaManualDesc}
-                </span>
-              </div>
-              <button
-                onClick={() => setDismissedPwaGuide(true)}
-                aria-label={t.pwaManualDismiss}
-                className="shrink-0 p-1.5 opacity-50 hover:opacity-100 transition-opacity"
-              >
-                <X size={14} />
-              </button>
-            </div>
-          </motion.div>
         )}
       </AnimatePresence>
     </div>
