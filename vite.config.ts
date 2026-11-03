@@ -40,6 +40,7 @@ export default defineConfig(({mode}) => {
           ]
         },
         workbox: {
+          maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB limit for offline caching
           globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
           runtimeCaching: [
             {
@@ -57,6 +58,17 @@ export default defineConfig(({mode}) => {
         }
       })
     ],
+    build: {
+      chunkSizeWarningLimit: 3000,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vendor-heic': ['heic2any'],
+            'vendor-pdf': ['jspdf'],
+          },
+        },
+      },
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

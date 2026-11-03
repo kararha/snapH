@@ -14,14 +14,18 @@ So I built my own. It's a simple web app that converts HEIC and HEIF images enti
 
 ## What it does
 
-- **Converts HEIC/HEIF → JPEG or PNG** — the two formats that actually work everywhere
-- **Runs 100% locally in your browser** — no backend, no server, no cloud
-- **Batch processing** — drag and drop a whole folder worth of photos and convert them all at once
-- **Individual controls** — convert or download files one at a time if you prefer
-- **English + Arabic** — full bilingual support with proper RTL layout for Arabic users
-- **Offline-First (PWA)** — Install it as an app and use it without an internet connection
-- **50MB per file limit** — keeps your browser happy and prevents memory issues
-- **Auto-cleanup** — object URLs are revoked the moment you're done, so nothing lingers
+- **Universal Image Conversion** — Converts HEIC/HEIF, WebP, AVIF, PNG, and JPG → **JPEG, PNG, WebP, or PDF**
+- **Single & Merged PDF Creation** — Export photos as individual PDFs or compile multiple receipts/documents into a single merged PDF
+- **Downscaling & Resolution Controls** — Resize photos with 4K UHD, Full HD (1920px), Web (1200px), or Compact (800px) presets
+- **Quality & Compression Settings** — High (90%), Balanced (80%), or Compact (65%) to satisfy strict upload and email limits
+- **GPS & EXIF Metadata Scrubbing** — 100% private; automatically strips sensitive location coordinates and device metadata
+- **Runs 100% locally in your browser** — no backend, no server, no cloud; your photos never leave your device
+- **Controlled Concurrency Queue** — Smooth batch conversions without freezing your browser
+- **Clipboard Paste Support** — Paste images directly from your clipboard (`Cmd+V` / `Ctrl+V`) or open file picker (`Cmd+O`)
+- **English + Arabic** — Full bilingual support with authentic RTL layout for Arabic users
+- **Offline-First (PWA)** — Install it as an app and use it anywhere without an internet connection
+- **50MB per file limit** — Keeps browser memory healthy and prevents crashes
+- **Auto-cleanup** — Object URLs are revoked the moment you're done, leaving zero memory leaks
 
 ---
 
@@ -147,6 +151,7 @@ snapheic/
 | **Vite** | 6 | Fast dev server and build tool. |
 | **Tailwind CSS** | v4 | Utility-first styling. |
 | **heic2any** | 0.0.4 | The core conversion engine. |
+| **jsPDF** | ^4.2.1 | Client-side single and merged PDF generation. |
 | **Vite PWA** | 0.21 | Enables offline installation. |
 | **Framer Motion** | 12 | Smooth UI animations. |
 | **Lucide React** | 0.546 | Clean, consistent icons. |
