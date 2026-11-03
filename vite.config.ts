@@ -64,7 +64,8 @@ export default defineConfig(({mode}) => {
         output: {
           manualChunks: {
             'vendor-heic': ['heic2any'],
-            'vendor-pdf': ['jspdf'],
+            'vendor-pdf': ['jspdf', 'html2canvas'],
+            'vendor-docx': ['docx-preview'],
           },
         },
       },

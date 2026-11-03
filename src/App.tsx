@@ -15,7 +15,11 @@ import {
   FileText,
   Sliders,
   Maximize2,
-  Layers
+  Layers,
+  ArrowUp,
+  ArrowDown,
+  Sparkles,
+  FileCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import JSZip from 'jszip';
@@ -26,7 +30,12 @@ import { usePWAInstall } from './hooks/usePWAInstall';
 import { 
   OutputFormat, 
   MaxDimension, 
+  PdfPageFormat,
+  PdfOrientation,
+  PdfMargin,
+  PdfExportOptions,
   isSupportedFile, 
+  isDocxFile,
   getTargetExtension, 
   convertImageFile, 
   createMergedPdf 
@@ -36,6 +45,7 @@ import logoIcon from './assets/logo-icon.svg';
 
 type ConversionStatus = 'idle' | 'converting' | 'completed' | 'error';
 type View = 'converter' | 'privacy';
+type AppMode = 'converter' | 'image-to-pdf';
 
 interface ConversionItem {
   id: string;
@@ -75,6 +85,7 @@ export default function App() {
   const [lang, setLang] = useState<Language>('en');
   const t = translations[lang];
   const [view, setView] = useState<View>('converter');
+  const [appMode, setAppMode] = useState<AppMode>('converter');
   const [items, setItems] = useState<ConversionItem[]>([]);
   
   // Conversion settings
@@ -83,6 +94,12 @@ export default function App() {
   const [maxDimension, setMaxDimension] = useState<MaxDimension>('original');
   const [stripMetadata, setStripMetadata] = useState<boolean>(true);
   
+  // PDF specific settings
+  const [pdfPageFormat, setPdfPageFormat] = useState<PdfPageFormat>('a4');
+  const [pdfOrientation, setPdfOrientation] = useState<PdfOrientation>('auto');
+  const [pdfMargin, setPdfMargin] = useState<PdfMargin>('none');
+  const [combinePdf, setCombinePdf] = useState<boolean>(true);
+
   const [isDragging, setIsDragging] = useState(false);
   const [isConvertingAll, setIsConvertingAll] = useState(false);
   const [isMergingPdf, setIsMergingPdf] = useState(false);
@@ -145,6 +162,18 @@ export default function App() {
     return () => window.removeEventListener('appinstalled', handleAppInstalled);
   }, [lang, showToast]);
 
+  // Handle switching between "Image Converter" and "Images to PDF" modes
+  const handleModeSwitch = (mode: AppMode) => {
+    setAppMode(mode);
+    if (mode === 'image-to-pdf') {
+      setGlobalFormat('application/pdf');
+      setItems(prev => prev.map(item => item.status === 'idle' ? { ...item, format: 'application/pdf' } : item));
+    } else {
+      setGlobalFormat('image/jpeg');
+      setItems(prev => prev.map(item => item.status === 'idle' ? { ...item, format: 'image/jpeg' } : item));
+    }
+  };
+
   const addFiles = useCallback((files: FileList | File[]) => {
     const allFiles = Array.from(files);
     const validFiles = allFiles.filter(file => isSupportedFile(file));
@@ -155,14 +184,17 @@ export default function App() {
 
     if (validFiles.length === 0) return;
 
-    const newItems: ConversionItem[] = validFiles.map(file => ({
-      id: Math.random().toString(36).substring(7),
-      file,
-      previewUrl: URL.createObjectURL(file),
-      status: 'idle',
-      progress: 0,
-      format: globalFormat
-    }));
+    const newItems: ConversionItem[] = validFiles.map(file => {
+      const isDoc = isDocxFile(file);
+      return {
+        id: Math.random().toString(36).substring(7),
+        file,
+        previewUrl: isDoc ? '' : URL.createObjectURL(file),
+        status: 'idle',
+        progress: 0,
+        format: isDoc ? 'application/pdf' : globalFormat
+      };
+    });
 
     setItems(prev => [...prev, ...newItems]);
     setHasEngaged(true);
@@ -194,6 +226,24 @@ export default function App() {
     });
   };
 
+  const moveItem = (index: number, direction: 'up' | 'down') => {
+    setItems(prev => {
+      const newIndex = direction === 'up' ? index - 1 : index + 1;
+      if (newIndex < 0 || newIndex >= prev.length) return prev;
+      const updated = [...prev];
+      const temp = updated[index];
+      updated[index] = updated[newIndex];
+      updated[newIndex] = temp;
+      return updated;
+    });
+  };
+
+  const currentPdfOptions: PdfExportOptions = {
+    pageFormat: pdfPageFormat,
+    orientation: pdfOrientation,
+    margin: pdfMargin
+  };
+
   const convertItem = async (id: string) => {
     const item = items.find(i => i.id === id);
     if (!item || item.status === 'converting') return;
@@ -205,7 +255,8 @@ export default function App() {
         format: item.format,
         quality: quality,
         maxDimension: maxDimension,
-        stripMetadata: stripMetadata
+        stripMetadata: stripMetadata,
+        pdfOptions: currentPdfOptions
       });
 
       const resultUrl = URL.createObjectURL(result.blob);
@@ -236,7 +287,7 @@ export default function App() {
 
     setIsConvertingAll(true);
     
-    // Controlled concurrency queue (2 workers) to avoid blocking main thread
+    // Controlled concurrency queue (2 workers)
     const concurrency = 2;
     const queue = [...idleItems];
 
@@ -303,7 +354,8 @@ export default function App() {
         completedItems.map(item => ({
           blob: item.resultBlob!,
           name: item.file.name
-        }))
+        })),
+        currentPdfOptions
       );
 
       const url = URL.createObjectURL(pdfBlob);
@@ -327,8 +379,10 @@ export default function App() {
     return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
   };
 
+  const isPdfMode = appMode === 'image-to-pdf' || globalFormat === 'application/pdf';
+
   return (
-    <div className="min-h-screen pt-8 pb-4 md:pt-16 md:pb-8 px-4 md:px-8 max-w-5xl mx-auto flex flex-col gap-8" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+    <div className="min-h-screen pt-8 pb-4 md:pt-14 md:pb-8 px-4 md:px-8 max-w-5xl mx-auto flex flex-col gap-6" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       {/* Toast Notification Overlay */}
       <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-2 pointer-events-none">
         <AnimatePresence>
@@ -381,10 +435,40 @@ export default function App() {
           </div>
         </div>
 
-        {/* Global Conversion Settings Toolbar */}
+        {/* Primary Tool Mode Selector Tabs */}
+        {view === 'converter' && (
+          <div className="flex items-center gap-2 pt-2 border-b border-black/10">
+            <button
+              onClick={() => handleModeSwitch('converter')}
+              className={`flex items-center gap-2 px-4 py-2 font-bold text-xs tracking-tight border-b-2 transition-all -mb-px ${
+                appMode === 'converter'
+                  ? 'border-black text-black'
+                  : 'border-transparent text-black/50 hover:text-black'
+              }`}
+            >
+              <ImageIcon size={14} />
+              {t.modeImageConverter}
+            </button>
+
+            <button
+              onClick={() => handleModeSwitch('image-to-pdf')}
+              className={`flex items-center gap-2 px-4 py-2 font-bold text-xs tracking-tight border-b-2 transition-all -mb-px ${
+                appMode === 'image-to-pdf'
+                  ? 'border-black text-black'
+                  : 'border-transparent text-black/50 hover:text-black'
+              }`}
+            >
+              <FileText size={14} className="text-red-500" />
+              {t.modeImageToPdf}
+              <span className="bg-red-50 text-red-600 text-[9px] px-1.5 py-0.2 rounded font-mono font-bold">PDF</span>
+            </button>
+          </div>
+        )}
+
+        {/* Settings Bar */}
         {view === 'converter' && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 bg-white technical-border">
-            {/* Format Selector */}
+            {/* Format Selector (or disabled in PDF mode) */}
             <div className="flex flex-col gap-1">
               <span className="mono-label !text-[9px] flex items-center gap-1">
                 <Layers size={10} />
@@ -392,13 +476,13 @@ export default function App() {
               </span>
               <select 
                 value={globalFormat}
+                disabled={appMode === 'image-to-pdf'}
                 onChange={(e) => {
                   const newFormat = e.target.value as OutputFormat;
                   setGlobalFormat(newFormat);
-                  // Update format of idle items
                   setItems(prev => prev.map(item => item.status === 'idle' ? { ...item, format: newFormat } : item));
                 }}
-                className="bg-black/[0.03] border border-black/10 rounded-md px-2.5 py-1.5 text-xs font-bold text-black focus:outline-none focus:ring-1 focus:ring-black cursor-pointer"
+                className="bg-black/[0.03] border border-black/10 rounded-md px-2.5 py-1.5 text-xs font-bold text-black focus:outline-none focus:ring-1 focus:ring-black cursor-pointer disabled:opacity-80"
               >
                 <option value="image/jpeg">JPEG (.jpg)</option>
                 <option value="image/png">PNG (.png)</option>
@@ -407,66 +491,120 @@ export default function App() {
               </select>
             </div>
 
-            {/* Quality Setting (Hidden/disabled for PNG) */}
-            <div className="flex flex-col gap-1">
-              <span className="mono-label !text-[9px] flex items-center gap-1">
-                <Sliders size={10} />
-                {t.quality}
-              </span>
-              <select 
-                value={quality}
-                disabled={globalFormat === 'image/png'}
-                onChange={(e) => setQuality(parseFloat(e.target.value))}
-                className="bg-black/[0.03] border border-black/10 rounded-md px-2.5 py-1.5 text-xs font-bold text-black focus:outline-none focus:ring-1 focus:ring-black cursor-pointer disabled:opacity-40"
-              >
-                <option value={0.9}>{t.qualityHigh}</option>
-                <option value={0.8}>{t.qualityBalanced}</option>
-                <option value={0.65}>{t.qualityCompact}</option>
-              </select>
-            </div>
+            {/* If in PDF mode: Page Size, else: Quality */}
+            {isPdfMode ? (
+              <div className="flex flex-col gap-1">
+                <span className="mono-label !text-[9px] flex items-center gap-1">
+                  <FileText size={10} />
+                  {t.pdfPageSize}
+                </span>
+                <select 
+                  value={pdfPageFormat}
+                  onChange={(e) => setPdfPageFormat(e.target.value as PdfPageFormat)}
+                  className="bg-black/[0.03] border border-black/10 rounded-md px-2.5 py-1.5 text-xs font-bold text-black focus:outline-none focus:ring-1 focus:ring-black cursor-pointer"
+                >
+                  <option value="a4">{t.pageSizeA4}</option>
+                  <option value="letter">{t.pageSizeLetter}</option>
+                  <option value="fit">{t.pageSizeFit}</option>
+                </select>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-1">
+                <span className="mono-label !text-[9px] flex items-center gap-1">
+                  <Sliders size={10} />
+                  {t.quality}
+                </span>
+                <select 
+                  value={quality}
+                  disabled={globalFormat === 'image/png'}
+                  onChange={(e) => setQuality(parseFloat(e.target.value))}
+                  className="bg-black/[0.03] border border-black/10 rounded-md px-2.5 py-1.5 text-xs font-bold text-black focus:outline-none focus:ring-1 focus:ring-black cursor-pointer disabled:opacity-40"
+                >
+                  <option value={0.9}>{t.qualityHigh}</option>
+                  <option value={0.8}>{t.qualityBalanced}</option>
+                  <option value={0.65}>{t.qualityCompact}</option>
+                </select>
+              </div>
+            )}
 
-            {/* Max Resolution / Downscaling */}
-            <div className="flex flex-col gap-1">
-              <span className="mono-label !text-[9px] flex items-center gap-1">
-                <Maximize2 size={10} />
-                {t.maxDimension}
-              </span>
-              <select 
-                value={maxDimension}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setMaxDimension(val === 'original' ? 'original' : (parseInt(val, 10) as MaxDimension));
-                }}
-                className="bg-black/[0.03] border border-black/10 rounded-md px-2.5 py-1.5 text-xs font-bold text-black focus:outline-none focus:ring-1 focus:ring-black cursor-pointer"
-              >
-                <option value="original">{t.originalSize}</option>
-                <option value={3840}>{t.dimension4K}</option>
-                <option value={1920}>{t.dimension1080p}</option>
-                <option value={1200}>{t.dimension1200p}</option>
-                <option value={800}>{t.dimension800p}</option>
-              </select>
-            </div>
+            {/* If in PDF mode: Orientation, else: Max Dimension */}
+            {isPdfMode ? (
+              <div className="flex flex-col gap-1">
+                <span className="mono-label !text-[9px] flex items-center gap-1">
+                  <Maximize2 size={10} />
+                  {t.pdfOrientation}
+                </span>
+                <select 
+                  value={pdfOrientation}
+                  onChange={(e) => setPdfOrientation(e.target.value as PdfOrientation)}
+                  className="bg-black/[0.03] border border-black/10 rounded-md px-2.5 py-1.5 text-xs font-bold text-black focus:outline-none focus:ring-1 focus:ring-black cursor-pointer"
+                >
+                  <option value="auto">{t.orientationAuto}</option>
+                  <option value="portrait">{t.orientationPortrait}</option>
+                  <option value="landscape">{t.orientationLandscape}</option>
+                </select>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-1">
+                <span className="mono-label !text-[9px] flex items-center gap-1">
+                  <Maximize2 size={10} />
+                  {t.maxDimension}
+                </span>
+                <select 
+                  value={maxDimension}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setMaxDimension(val === 'original' ? 'original' : (parseInt(val, 10) as MaxDimension));
+                  }}
+                  className="bg-black/[0.03] border border-black/10 rounded-md px-2.5 py-1.5 text-xs font-bold text-black focus:outline-none focus:ring-1 focus:ring-black cursor-pointer"
+                >
+                  <option value="original">{t.originalSize}</option>
+                  <option value={3840}>{t.dimension4K}</option>
+                  <option value={1920}>{t.dimension1080p}</option>
+                  <option value={1200}>{t.dimension1200p}</option>
+                  <option value={800}>{t.dimension800p}</option>
+                </select>
+              </div>
+            )}
 
-            {/* Privacy: Strip GPS & EXIF */}
-            <div className="flex flex-col gap-1">
-              <span className="mono-label !text-[9px] flex items-center gap-1">
-                <ShieldCheck size={10} />
-                {t.securityArchitecture}
-              </span>
-              <button
-                type="button"
-                onClick={() => setStripMetadata(!stripMetadata)}
-                className={`flex items-center justify-center gap-1.5 px-2.5 py-1.5 text-xs font-bold rounded-md border transition-all active:scale-95 ${
-                  stripMetadata 
-                    ? 'bg-black text-white border-black shadow-xs' 
-                    : 'bg-black/[0.03] text-black/60 border-black/10 hover:border-black/30'
-                }`}
-                title={t.stripMetadataDesc}
-              >
-                <ShieldCheck size={13} className={stripMetadata ? "text-green-400" : ""} />
-                <span className="truncate">{t.stripMetadata}</span>
-              </button>
-            </div>
+            {/* If in PDF mode: Margins, else: Strip GPS & EXIF */}
+            {isPdfMode ? (
+              <div className="flex flex-col gap-1">
+                <span className="mono-label !text-[9px] flex items-center gap-1">
+                  <ShieldCheck size={10} />
+                  {t.pdfMargin}
+                </span>
+                <select 
+                  value={pdfMargin}
+                  onChange={(e) => setPdfMargin(e.target.value as PdfMargin)}
+                  className="bg-black/[0.03] border border-black/10 rounded-md px-2.5 py-1.5 text-xs font-bold text-black focus:outline-none focus:ring-1 focus:ring-black cursor-pointer"
+                >
+                  <option value="none">{t.marginNone}</option>
+                  <option value="small">{t.marginSmall}</option>
+                  <option value="normal">{t.marginNormal}</option>
+                </select>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-1">
+                <span className="mono-label !text-[9px] flex items-center gap-1">
+                  <ShieldCheck size={10} />
+                  {t.securityArchitecture}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setStripMetadata(!stripMetadata)}
+                  className={`flex items-center justify-center gap-1.5 px-2.5 py-1.5 text-xs font-bold rounded-md border transition-all active:scale-95 ${
+                    stripMetadata 
+                      ? 'bg-black text-white border-black shadow-xs' 
+                      : 'bg-black/[0.03] text-black/60 border-black/10 hover:border-black/30'
+                  }`}
+                  title={t.stripMetadataDesc}
+                >
+                  <ShieldCheck size={13} className={stripMetadata ? "text-green-400" : ""} />
+                  <span className="truncate">{t.stripMetadata}</span>
+                </button>
+              </div>
+            )}
           </div>
         )}
       </header>
@@ -494,7 +632,7 @@ export default function App() {
                 ref={fileInputRef} 
                 hidden 
                 multiple 
-                accept=".heic,.heif,.webp,.avif,.png,.jpg,.jpeg,image/heic,image/heif,image/webp,image/avif,image/png,image/jpeg"
+                accept=".heic,.heif,.webp,.avif,.png,.jpg,.jpeg,.docx,image/*,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 onChange={(e) => e.target.files && addFiles(e.target.files)}
               />
               
@@ -503,12 +641,22 @@ export default function App() {
                 className="flex flex-col items-center justify-center"
               >
                 <div className="w-16 h-16 bg-black/5 rounded-full flex items-center justify-center mb-6 text-black/80 group-hover:bg-black/10 transition-colors shadow-sm">
-                  <Upload size={28} strokeWidth={1.5} />
+                  {isPdfMode ? (
+                    <FileText size={28} strokeWidth={1.5} className="text-red-500" />
+                  ) : (
+                    <Upload size={28} strokeWidth={1.5} />
+                  )}
                 </div>
                 
-                <h2 className="font-extrabold text-[22px] tracking-tight mb-2 text-black text-center">{t.dropFiles}</h2>
-                <p className="text-[13px] font-medium text-black/50 mb-3 text-center max-w-[280px] leading-snug">{t.dropFilesSubtitle}</p>
-                <p className="text-[10px] font-mono text-black/40 mb-6 uppercase tracking-wider">{t.allFormatsSupported}</p>
+                <h2 className="font-extrabold text-[22px] tracking-tight mb-2 text-black text-center">
+                  {isPdfMode ? t.dropImagesToPdf : t.dropFiles}
+                </h2>
+                <p className="text-[13px] font-medium text-black/50 mb-3 text-center max-w-[280px] leading-snug">
+                  {isPdfMode ? t.dropImagesToPdfSubtitle : t.dropFilesSubtitle}
+                </p>
+                <p className="text-[10px] font-mono text-black/40 mb-6 uppercase tracking-wider">
+                  {t.allFormatsSupported}
+                </p>
                 
                 <button 
                   className="bg-black text-white font-bold text-[11px] rounded-md uppercase px-8 py-3.5 tracking-widest hover:bg-black/80 active:scale-[0.98] transition-all shadow-md focus:ring-2 focus:ring-black/20 focus:outline-none"
@@ -531,42 +679,43 @@ export default function App() {
             </motion.div>
           </div>
 
-          {/* Right Column: Queue */}
+          {/* Right Column: Queue / Pages */}
           <div className="flex flex-col">
             <div className="border-b border-black/10 pb-4 mb-5 flex flex-wrap justify-between items-end gap-3 px-1">
               <h2 className="font-bold text-xs uppercase tracking-widest text-black/60 flex items-center gap-2">
-                {t.queueTitle} 
+                {isPdfMode ? t.pdfPagesTitle : t.queueTitle} 
                 <span className="bg-black/10 text-black px-1.5 py-0.5 rounded-sm text-[9px]">{items.length}</span>
               </h2>
               {items.length > 0 && (
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-2.5">
                   <button 
                     onClick={convertAll}
                     disabled={isConvertingAll || items.every(i => i.status === 'completed' || i.status === 'converting')}
-                    className="text-[10px] font-bold uppercase tracking-widest text-black hover:text-black/70 active:scale-[0.98] transition-all disabled:opacity-30 flex items-center gap-1"
+                    className="text-[10px] font-bold uppercase tracking-widest text-black hover:text-black/70 active:scale-[0.98] transition-all disabled:opacity-30 flex items-center gap-1 bg-black/5 px-2.5 py-1 rounded"
                   >
                     {isConvertingAll && <Loader2 size={11} className="animate-spin" />}
                     {t.convertAll}
                   </button>
 
-                  <button 
-                    onClick={downloadAll}
-                    disabled={!items.some(i => i.status === 'completed')}
-                    className="text-[10px] font-bold uppercase tracking-widest text-black hover:text-black/70 active:scale-[0.98] transition-all disabled:opacity-30"
-                  >
-                    {t.downloadAll}
-                  </button>
-
-                  {/* Merged PDF Button for multiple converted items or PDF format */}
-                  {items.some(i => i.status === 'completed') && (
+                  {/* Primary PDF Document Export */}
+                  {isPdfMode && items.some(i => i.status === 'completed') && (
                     <button 
                       onClick={downloadMergedPdf}
                       disabled={isMergingPdf}
-                      className="text-[10px] font-bold uppercase tracking-widest text-blue-600 hover:text-blue-800 active:scale-[0.98] transition-all disabled:opacity-30 flex items-center gap-1"
-                      title={t.downloadMergedPdf}
+                      className="text-[10px] font-bold uppercase tracking-widest text-white bg-black hover:bg-black/80 active:scale-[0.98] transition-all disabled:opacity-40 flex items-center gap-1 px-3 py-1 rounded shadow-sm"
+                      title={t.exportMergedPdfButton}
                     >
-                      {isMergingPdf ? <Loader2 size={11} className="animate-spin" /> : <FileText size={11} />}
-                      {t.downloadMergedPdf}
+                      {isMergingPdf ? <Loader2 size={11} className="animate-spin" /> : <FileCheck size={12} />}
+                      {t.exportMergedPdfButton} ({items.filter(i => i.status === 'completed').length})
+                    </button>
+                  )}
+
+                  {!isPdfMode && items.some(i => i.status === 'completed') && (
+                    <button 
+                      onClick={downloadAll}
+                      className="text-[10px] font-bold uppercase tracking-widest text-black hover:text-black/70 active:scale-[0.98] transition-all bg-black/5 px-2.5 py-1 rounded"
+                    >
+                      {t.downloadAll}
                     </button>
                   )}
 
@@ -578,7 +727,7 @@ export default function App() {
                       });
                       setItems([]);
                     }}
-                    className="text-[10px] font-bold uppercase tracking-widest text-black/40 hover:text-red-500 active:scale-[0.98] transition-colors"
+                    className="text-[10px] font-bold uppercase tracking-widest text-black/40 hover:text-red-500 active:scale-[0.98] transition-colors px-2 py-1"
                   >
                     {t.clearQueue}
                   </button>
@@ -588,7 +737,7 @@ export default function App() {
 
             <div className="flex flex-col gap-3">
               <AnimatePresence mode="popLayout">
-                {items.map((item) => (
+                {items.map((item, index) => (
                   <motion.div
                     layout
                     key={item.id}
@@ -600,8 +749,16 @@ export default function App() {
                   >
                     {/* Item Thumbnail & File Info */}
                     <div className="flex items-center gap-3 flex-1 min-w-0">
+                      {isPdfMode && (
+                        <div className="w-6 h-6 bg-black/5 rounded flex items-center justify-center font-mono font-bold text-[10px] text-black shrink-0">
+                          {index + 1}
+                        </div>
+                      )}
+
                       <div className="w-12 h-12 bg-black/[0.03] rounded-md flex items-center justify-center shrink-0 border border-black/5 overflow-hidden">
-                        {item.status === 'completed' && item.resultUrl ? (
+                        {isDocxFile(item.file) ? (
+                          <FileText size={22} className="text-blue-600" />
+                        ) : item.status === 'completed' && item.resultUrl ? (
                           item.format === 'application/pdf' ? (
                             <FileText size={22} className="text-red-500" />
                           ) : (
@@ -611,10 +768,17 @@ export default function App() {
                               className="w-full h-full object-cover"
                             />
                           )
+                        ) : item.previewUrl ? (
+                          <img 
+                            src={item.previewUrl} 
+                            alt="Original preview" 
+                            className="w-full h-full object-cover opacity-80"
+                          />
                         ) : (
                           <ImageIcon size={18} strokeWidth={1.5} className="opacity-40 text-black" />
                         )}
                       </div>
+
                       <div className="flex flex-col min-w-0 text-black">
                         <span className="font-bold truncate text-xs">{item.file.name}</span>
                         <div className="flex items-center gap-2 mt-0.5">
@@ -654,7 +818,7 @@ export default function App() {
                             <Check size={11} strokeWidth={2.5} /> 
                             {t.converted}
                           </span>
-                          {stripMetadata && (
+                          {stripMetadata && item.format !== 'application/pdf' && (
                             <span className="text-[8px] font-mono text-green-700 opacity-80">
                               {t.gpsScrubbed}
                             </span>
@@ -670,8 +834,30 @@ export default function App() {
                       )}
                     </div>
 
-                    {/* Action Buttons */}
-                    <div className="flex items-center gap-1.5">
+                    {/* Action & Reorder Buttons */}
+                    <div className="flex items-center gap-1">
+                      {/* Page Reorder buttons in PDF mode */}
+                      {isPdfMode && items.length > 1 && (
+                        <div className="flex flex-col -space-y-1 mr-1">
+                          <button
+                            onClick={() => moveItem(index, 'up')}
+                            disabled={index === 0}
+                            className="p-1 hover:text-black text-black/30 disabled:opacity-10 transition-colors"
+                            title={t.moveUp}
+                          >
+                            <ArrowUp size={12} />
+                          </button>
+                          <button
+                            onClick={() => moveItem(index, 'down')}
+                            disabled={index === items.length - 1}
+                            className="p-1 hover:text-black text-black/30 disabled:opacity-10 transition-colors"
+                            title={t.moveDown}
+                          >
+                            <ArrowDown size={12} />
+                          </button>
+                        </div>
+                      )}
+
                       {item.status === 'completed' ? (
                         <button 
                           onClick={() => downloadItem(item)}
@@ -690,6 +876,7 @@ export default function App() {
                           <Plus size={14} className={item.status !== 'converting' ? "group-hover:rotate-90 transition-transform" : ""} />
                         </button>
                       )}
+                      
                       <button 
                         onClick={() => removeItem(item.id)}
                         className="p-1.5 text-black/40 hover:bg-red-50 rounded-md hover:text-red-500 transition-all border border-transparent hover:border-red-200 active:scale-95"
@@ -719,7 +906,7 @@ export default function App() {
       )}
 
       {/* Footer */}
-      <footer className="mt-auto pt-12">
+      <footer className="mt-auto pt-10">
         <div className="border-t border-black/10 pt-6 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex flex-col gap-1 items-center md:items-start text-black">
             <div 

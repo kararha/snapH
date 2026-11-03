@@ -14,7 +14,9 @@ So I built my own. It's a simple web app that converts HEIC and HEIF images enti
 
 ## What it does
 
-- **Universal Image Conversion** — Converts HEIC/HEIF, WebP, AVIF, PNG, and JPG → **JPEG, PNG, WebP, or PDF**
+- **Dedicated "Images to PDF" Mode** — Convert photos, receipts, or scans into a clean PDF with A4, US Letter, or Fit-to-Image formatting, margins, and page reordering (Move Up / Down)
+- **Universal Image Conversion** — Converts HEIC/HEIF, WebP, AVIF, PNG, JPG, and Word (.docx) → **JPEG, PNG, WebP, or PDF**
+- **Word (.docx) to PDF** — 100% in-browser Word document to PDF conversion without uploading to any server
 - **Single & Merged PDF Creation** — Export photos as individual PDFs or compile multiple receipts/documents into a single merged PDF
 - **Downscaling & Resolution Controls** — Resize photos with 4K UHD, Full HD (1920px), Web (1200px), or Compact (800px) presets
 - **Quality & Compression Settings** — High (90%), Balanced (80%), or Compact (65%) to satisfy strict upload and email limits
@@ -152,6 +154,8 @@ snapheic/
 | **Tailwind CSS** | v4 | Utility-first styling. |
 | **heic2any** | 0.0.4 | The core conversion engine. |
 | **jsPDF** | ^4.2.1 | Client-side single and merged PDF generation. |
+| **docx-preview** | ^0.4.1 | In-browser Word (.docx) document parsing and rendering. |
+| **html2canvas** | ^1.4.1 | High-resolution DOM to canvas rendering for document exports. |
 | **Vite PWA** | 0.21 | Enables offline installation. |
 | **Framer Motion** | 12 | Smooth UI animations. |
 | **Lucide React** | 0.546 | Clean, consistent icons. |
