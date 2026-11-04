@@ -17,8 +17,8 @@ export default defineConfig(({mode}) => {
           name: 'SnapHeic | Private HEIC Converter',
           short_name: 'SnapHeic',
           description: 'Convert HEIC photos to JPEG/PNG entirely in your browser. 100% private.',
-          theme_color: '#F4F4F2',
-          background_color: '#F4F4F2',
+          theme_color: '#F4F1EA',
+          background_color: '#F4F1EA',
           display: 'standalone',
           icons: [
             {

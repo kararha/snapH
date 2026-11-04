@@ -66,18 +66,12 @@ interface Toast {
   type: 'success' | 'error' | 'info';
 }
 
-const SnapHeicLogo = ({ size = 28 }: { size?: number }) => (
+const SnapHeicLogo = ({ size = 36 }: { size?: number }) => (
   <div 
-    className="relative inline-flex items-center justify-center bg-black text-white p-1 overflow-hidden shadow-sm rounded-md" 
-    style={{ width: size + 8, height: size + 8 }}
+    className="relative inline-flex items-center justify-center shrink-0 drop-shadow-xs" 
+    style={{ width: size, height: size }}
   >
     <img src={logoIcon} style={{ width: size, height: size }} alt="SnapHeic" />
-    <motion.div 
-      initial={{ x: -size }}
-      animate={{ x: size + 10 }}
-      transition={{ duration: 2, repeat: Infinity, ease: "linear", repeatDelay: 1 }}
-      className="absolute top-0 bottom-0 w-1 bg-white/30 rotate-12"
-    />
   </div>
 );
 
@@ -410,11 +404,21 @@ export default function App() {
             className="cursor-pointer group flex flex-col"
             onClick={() => setView('converter')}
           >
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight flex items-center gap-3 text-black">
-              <SnapHeicLogo />
-              {t.title}
-            </h1>
-            <p className="text-sm font-medium text-black/50 mt-1">
+            <div className="flex items-center gap-3">
+              <SnapHeicLogo size={36} />
+              {lang === 'ar' ? (
+                <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-[#0B0B0C] flex items-center gap-2">
+                  <span>سناب</span>
+                  <span className="bg-[#D6FF3F] text-[#0B0B0C] px-2 py-0.5 rounded-xs">هيك</span>
+                </h1>
+              ) : (
+                <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-[#0B0B0C] flex items-center font-display">
+                  <span>SNAP</span>
+                  <span className="bg-[#D6FF3F] text-[#0B0B0C] px-2 py-0.5 ml-1.5 rounded-xs">HEIC</span>
+                </h1>
+              )}
+            </div>
+            <p className="font-mono text-[11px] font-medium tracking-wide text-[#0B0B0C]/60 mt-1.5 uppercase">
               {t.subtitle}
             </p>
           </div>

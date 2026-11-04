@@ -4,32 +4,32 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="referrer" content="no-referrer" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; worker-src 'self' blob:; connect-src 'self' blob:;" />
+    <meta name="theme-color" content="#F4F1EA" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' blob: data:; worker-src 'self' blob:; connect-src 'self' blob:;" />
     
     <!-- Primary Meta Tags -->
-    <title>SnapHeic | Private HEIC to JPG Converter</title>
-    <meta name="title" content="SnapHeic | Private HEIC to JPG Converter" />
-    <meta name="description" content="Convert HEIC/HEIF photos to JPEG/PNG entirely in your browser. 100% private, local processing, no servers, no tracking." />
+    <title>SnapHeic | Private Offline Photo & Document Converter</title>
+    <meta name="title" content="SnapHeic | Private Offline Photo & Document Converter" />
+    <meta name="description" content="Convert HEIC/HEIF photos, WebP, and Word documents to JPEG, PNG, or PDF entirely in your browser. 100% private, local processing, no servers." />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://snapheic.vercel.app/" />
-    <meta property="og:title" content="SnapHeic | Private HEIC to JPG Converter" />
-    <meta property="og:description" content="Convert HEIC/HEIF photos to JPEG/PNG entirely in your browser. 100% private, local processing." />
+    <meta property="og:title" content="SnapHeic | Private Photo & Document Converter" />
+    <meta property="og:description" content="Convert HEIC photos and documents to JPG, PNG, WebP, or PDF entirely in your browser. 100% private." />
     <meta property="og:image" content="/docs/screenshot-main.png" />
 
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="https://snapheic.vercel.app/" />
-    <meta property="twitter:title" content="SnapHeic | Private HEIC to JPG Converter" />
-    <meta property="twitter:description" content="Convert HEIC/HEIF photos to JPEG/PNG entirely in your browser. 100% private, local processing." />
-    <meta property="twitter:image" content="/docs/screenshot-main.png" />
+    <!-- Google Fonts: Space Grotesk, JetBrains Mono, Noto Sans Arabic -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
 
+    <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/src/assets/favicon.svg" />
+    <link rel="apple-touch-icon" href="/pwa-192x192.png" />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-

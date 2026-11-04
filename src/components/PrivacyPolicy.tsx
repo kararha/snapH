@@ -29,11 +29,11 @@ export const PrivacyPolicy: React.FC<PolicyProps> = ({ onBack, lang }) => {
       </button>
 
       <div className="max-w-3xl">
-        <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#1A1A1A] text-white text-[10px] font-mono tracking-widest uppercase mb-6">
+        <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#0B0B0C] text-[#D6FF3F] text-[10px] font-mono tracking-widest uppercase mb-6 rounded-xs">
           <ShieldCheck size={14} /> {t.securityArchitecture}
         </div>
         
-        <h2 className="text-4xl font-bold tracking-tighter mb-6 underline decoration-4 decoration-[#1A1A1A]/10 underline-offset-8">
+        <h2 className="text-4xl font-bold tracking-tighter mb-6 underline decoration-4 decoration-[#D6FF3F] underline-offset-8">
           {t.privacyPolicy}
         </h2>
 
@@ -48,12 +48,12 @@ export const PrivacyPolicy: React.FC<PolicyProps> = ({ onBack, lang }) => {
           </section>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
-            <div className="p-6 technical-border !shadow-none bg-[#F4F4F2] cursor-default hover:border-[#1A1A1A] transition-colors">
+            <div className="p-6 technical-border !shadow-none bg-[#F4F1EA] cursor-default hover:border-[#0B0B0C] transition-colors">
               <Lock className="mb-4" />
               <h3 className="font-bold mb-2">{t.zeroDataCollection}</h3>
               <p className="text-xs opacity-60">{t.zeroDataDesc}</p>
             </div>
-            <div className="p-6 technical-border !shadow-none bg-[#F4F4F2] cursor-default hover:border-[#1A1A1A] transition-colors">
+            <div className="p-6 technical-border !shadow-none bg-[#F4F1EA] cursor-default hover:border-[#0B0B0C] transition-colors">
               <Globe className="mb-4" />
               <h3 className="font-bold mb-2">{t.localProcessing}</h3>
               <p className="text-xs opacity-60">{t.localProcessingDesc}</p>

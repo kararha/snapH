@@ -3,7 +3,8 @@ export type Language = 'en' | 'ar';
 export const translations = {
   en: {
     title: 'SNAPHEIC',
-    subtitle: 'A fast, local HEIC & everyday converter',
+    subtitle: 'PRIVATE HEIC → JPEG / PNG CONVERTER. NO UPLOADS. NO SERVERS.',
+    brandTagline: 'PRIVATE. OFFLINE. NO UPLOADS.',
     modeImageConverter: 'Image Converter',
     modeImageToPdf: 'Images to PDF',
     outputFormat: 'Output Format',
@@ -112,8 +113,9 @@ export const translations = {
     pwaChromiumMobileStep: 'Tap the menu (⋮) and select "Add to Home Screen".',
   },
   ar: {
-    title: 'سناب هك',
-    subtitle: 'محول HEIC والصور والمستندات السريع والمحلي',
+    title: 'سناب هيك',
+    subtitle: 'محول HEIC ومستندات خاص • بدون خوادم • لا يتم رفع أي شيء',
+    brandTagline: 'خاص • بدون إنترنت • بدون رفع ملفات',
     modeImageConverter: 'محول الصور',
     modeImageToPdf: 'الصور إلى PDF',
     outputFormat: 'صيغة المخرجات',

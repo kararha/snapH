@@ -12,8 +12,8 @@ interface PWAInstallModalProps {
   onPermanentDismiss?: () => void;
 }
 
-const SnapHeicLogo = ({ size = 28 }: { size?: number }) => (
-  <div className="relative inline-flex items-center justify-center bg-black text-white p-1.5 shadow-sm rounded-md" style={{ width: size + 10, height: size + 10 }}>
+const SnapHeicLogo = ({ size = 32 }: { size?: number }) => (
+  <div className="relative inline-flex items-center justify-center shrink-0 drop-shadow-xs" style={{ width: size, height: size }}>
     <img src={logoIcon} style={{ width: size, height: size }} alt="SnapHeic" />
   </div>
 );

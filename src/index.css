@@ -1,27 +1,43 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-arabic: "Noto Sans Arabic", "Space Grotesk", sans-serif;
+
+  --color-paper: #F4F1EA;
+  --color-ink: #0B0B0C;
+  --color-volt: #D6FF3F;
+  --color-signal: #FF4B1F;
+  --color-concrete: #8C8A83;
 }
 
 @layer base {
   body {
-    /* Subtle grid texture for "Native desktop-tool feeling" */
-    @apply bg-[#F7F7F7] text-[#111111] font-sans antialiased;
-    background-image: radial-gradient(rgba(0, 0, 0, 0.08) 1px, transparent 0);
+    /* SnapHEIC Brand Paper Background with subtle technical Ink grid texture */
+    @apply bg-[#F4F1EA] text-[#0B0B0C] font-sans antialiased selection:bg-[#D6FF3F] selection:text-[#0B0B0C];
+    background-image: radial-gradient(rgba(11, 11, 12, 0.08) 1.2px, transparent 0);
     background-size: 24px 24px;
     background-position: -12px -12px;
+  }
+
+  [dir="rtl"] {
+    font-family: var(--font-arabic);
   }
 }
 
 @layer components {
-  /* Minimal brutalism + Linear polish: 1px border, slight rounding, soft shadow */
+  /* Minimal brutalism + technical border */
   .technical-border {
-    @apply border border-black/10 shadow-sm bg-white rounded-lg backdrop-blur-sm;
+    @apply border border-[#0B0B0C]/15 shadow-xs bg-white/90 rounded-lg backdrop-blur-xs;
   }
   
   .mono-label {
-    @apply font-mono text-[10px] uppercase tracking-wider opacity-50 text-[#111111] font-semibold;
+    @apply font-mono text-[10px] uppercase tracking-wider text-[#0B0B0C]/60 font-semibold;
+  }
+
+  .badge-volt {
+    @apply bg-[#D6FF3F] text-[#0B0B0C] font-mono font-bold text-[9px] px-1.5 py-0.5 rounded-xs tracking-wider uppercase;
   }
 }
