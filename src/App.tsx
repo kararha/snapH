@@ -22,7 +22,10 @@ import {
   Sparkles,
   FileCheck,
   RefreshCw,
-  FolderOpen
+  FolderOpen,
+  Camera,
+  Globe,
+  FileEdit
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import JSZip from 'jszip';
@@ -1126,28 +1129,40 @@ export default function App() {
                     onClick={() => applyPreset('heic-jpg')}
                     className="flex items-center justify-between px-2.5 py-1.5 bg-[#0B0B0C]/[0.02] hover:bg-[#D6FF3F]/20 border border-[#0B0B0C]/10 rounded text-xs font-bold text-[#0B0B0C] text-left transition-colors"
                   >
-                    <span>📸 {t.presetHeicToJpg}</span>
+                    <span className="flex items-center gap-1.5">
+                      <Camera size={12} className="text-[#0B0B0C]/70 shrink-0" />
+                      <span>{t.presetHeicToJpg}</span>
+                    </span>
                     <span className="mono-label !text-[8px]">JPG</span>
                   </button>
                   <button
                     onClick={() => applyPreset('heic-webp')}
                     className="flex items-center justify-between px-2.5 py-1.5 bg-[#0B0B0C]/[0.02] hover:bg-[#D6FF3F]/20 border border-[#0B0B0C]/10 rounded text-xs font-bold text-[#0B0B0C] text-left transition-colors"
                   >
-                    <span>🌐 {t.presetHeicToWebp}</span>
+                    <span className="flex items-center gap-1.5">
+                      <Globe size={12} className="text-[#0B0B0C]/70 shrink-0" />
+                      <span>{t.presetHeicToWebp}</span>
+                    </span>
                     <span className="mono-label !text-[8px]">-80%</span>
                   </button>
                   <button
                     onClick={() => applyPreset('photos-pdf')}
                     className="flex items-center justify-between px-2.5 py-1.5 bg-[#0B0B0C]/[0.02] hover:bg-[#D6FF3F]/20 border border-[#0B0B0C]/10 rounded text-xs font-bold text-[#0B0B0C] text-left transition-colors"
                   >
-                    <span>📄 {t.presetPhotosToPdf}</span>
+                    <span className="flex items-center gap-1.5">
+                      <FileText size={12} className="text-[#0B0B0C]/70 shrink-0" />
+                      <span>{t.presetPhotosToPdf}</span>
+                    </span>
                     <span className="mono-label !text-[8px]">PDF</span>
                   </button>
                   <button
                     onClick={() => applyPreset('word-pdf')}
                     className="flex items-center justify-between px-2.5 py-1.5 bg-[#0B0B0C]/[0.02] hover:bg-[#D6FF3F]/20 border border-[#0B0B0C]/10 rounded text-xs font-bold text-[#0B0B0C] text-left transition-colors"
                   >
-                    <span>📝 {t.presetWordToPdf}</span>
+                    <span className="flex items-center gap-1.5">
+                      <FileEdit size={12} className="text-[#0B0B0C]/70 shrink-0" />
+                      <span>{t.presetWordToPdf}</span>
+                    </span>
                     <span className="mono-label !text-[8px]">DOCX</span>
                   </button>
                 </div>
