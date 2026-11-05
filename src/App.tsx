@@ -892,7 +892,7 @@ export default function App() {
           {/* ========================================================================= */}
           {/* RIGHT SIDE: Image to PDF & Options Panel (All Options "One Under One")    */}
           {/* ========================================================================= */}
-          <div className="flex flex-col gap-4 w-full sticky top-6">
+          <aside data-testid="options-sidebar" className="flex flex-col gap-4 w-full sticky top-6">
             <div className="p-4 bg-white technical-border flex flex-col gap-4 shadow-sm">
               {/* Mode Segmented Control */}
               <div className="flex flex-col gap-1.5 pb-3 border-b border-[#0B0B0C]/10">
@@ -1140,7 +1140,7 @@ export default function App() {
                 <span>100% In-Browser Engine • Zero Servers</span>
               </div>
             </div>
-          </div>
+          </aside>
         </div>
       ) : (
         <PrivacyPolicy onBack={() => setView('converter')} lang={lang} />
