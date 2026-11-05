@@ -28,7 +28,7 @@ export const translations = {
     formatJpeg: 'JPEG (.jpg)',
     formatPng: 'PNG (.png)',
     allFormatsSupported: 'HEIC, WebP, AVIF, PNG, JPG, DOCX up to 50MB',
-    dropFiles: 'Drop Files Here',
+    dropFiles: 'Drop Photos or Files Here',
     dropFilesSubtitle: 'Drag & drop HEIC, WebP, AVIF, PNG, JPG, or Word (.docx) files.',
     dropImagesToPdf: 'Drop Photos for PDF',
     dropImagesToPdfSubtitle: 'Combine receipts, documents, or photos into a single PDF.',
@@ -68,6 +68,41 @@ export const translations = {
     createdBy: 'Created by Karar Haider',
     iphoneNote: 'Perfect if you have an iPhone and a Windows/Linux laptop. Convert your photos and documents easily without Mac!',
     
+    // Quick Presets
+    quickPresets: 'QUICK WORKFLOWS',
+    presetHeicToJpg: 'HEIC → JPG',
+    presetHeicToWebp: 'HEIC → WebP (Save 80%)',
+    presetPhotosToPdf: 'Photos → Single PDF',
+    presetWordToPdf: 'Word (.docx) → PDF',
+    presetDownscale: 'Downscale for Email (1080p)',
+    
+    // Feature Value Prop Cards
+    feature1Title: '100% In-Browser Engine',
+    feature1Desc: 'Zero uploads. Your photos and documents never touch a server. Execution runs entirely in local memory using WebAssembly & Canvas.',
+    feature2Title: 'Zero-Trust GPS Scrubbing',
+    feature2Desc: 'Automatic GPS location coordinate and camera EXIF stripping. Share photos anywhere without exposing your home or location.',
+    feature3Title: 'Everyday Document Toolbox',
+    feature3Desc: 'Convert HEIC, WebP, AVIF, PNG, JPG, or Word files into single or merged multi-page PDFs with A4 and Letter formatting.',
+
+    // Queue Dashboard Stats
+    summaryTotal: 'Files Queued',
+    summaryOriginal: 'Original Size',
+    summaryConverted: 'Output Size',
+    summarySavings: 'Space Saved',
+    addMoreFiles: 'Add More Files',
+    previewAction: 'Preview & Inspect',
+    
+    // Preview Modal
+    previewModalTitle: 'Image Inspection & Audit',
+    originalFile: 'Original File',
+    convertedFile: 'Converted Output',
+    resolutionLabel: 'Resolution',
+    fileSizeLabel: 'File Size',
+    privacyAuditLabel: 'Privacy Audit',
+    gpsScrubbedStatus: 'GPS & Camera EXIF Scrubbed Clean',
+    downloadCurrentItem: 'Download Converted File',
+    close: 'Close',
+
     // PDF Options
     pdfPageSize: 'Page Size',
     pageSizeA4: 'A4 (210×297mm)',
@@ -139,7 +174,7 @@ export const translations = {
     formatJpeg: 'صورة JPEG (.jpg)',
     formatPng: 'صورة PNG (.png)',
     allFormatsSupported: 'HEIC, WebP, AVIF, PNG, JPG, DOCX حتى 50 ميغابايت',
-    dropFiles: 'أفلت الملفات هنا',
+    dropFiles: 'أفلت الصور أو الملفات هنا',
     dropFilesSubtitle: 'اسحب وأفلت صور HEIC أو WebP أو AVIF أو PNG أو JPG أو ملفات وورد (.docx).',
     dropImagesToPdf: 'أفلت الصور لإنشاء PDF',
     dropImagesToPdfSubtitle: 'اجمع الإيصالات أو المستندات أو الصور في ملف PDF واحد مدمج.',
@@ -179,6 +214,41 @@ export const translations = {
     createdBy: 'تم التطوير بواسطة كرار حيدر',
     iphoneNote: 'مثالي إذا كان لديك iPhone وجهاز كمبيوتر يعمل بنظام Windows أو Linux. حول صورك ومستنداتك بسهولة!',
     
+    // Quick Presets
+    quickPresets: 'مسارات سريعة',
+    presetHeicToJpg: 'HEIC → JPG',
+    presetHeicToWebp: 'HEIC → WebP (توفير 80%)',
+    presetPhotosToPdf: 'صور → مستند PDF',
+    presetWordToPdf: 'Word (.docx) → PDF',
+    presetDownscale: 'تصغير الحجم للإيميل (1080p)',
+
+    // Feature Value Prop Cards
+    feature1Title: 'معالجة 100% داخل المتصفح',
+    feature1Desc: 'بدون رفع ملفات. صورك ومستنداتك لا تلمس أي خادم وتتم المعالجة بالكامل محلياً عبر WebAssembly و Canvas.',
+    feature2Title: 'مسح بيانات الموقع GPS',
+    feature2Desc: 'إزالة تلقائية لإحداثيات GPS وبيانات الكاميرا والجهاز لمشاركة الصور على الإنترنت بأمان تام.',
+    feature3Title: 'أداة المستندات والصيغ اليومية',
+    feature3Desc: 'تحويل صور HEIC و WebP و AVIF و JPG وملفات Word إلى ملفات PDF فردية أو مدمجة بمقاسات A4 و Letter.',
+
+    // Queue Dashboard Stats
+    summaryTotal: 'الملفات في القائمة',
+    summaryOriginal: 'الحجم الأصلي',
+    summaryConverted: 'الحجم بعد التحويل',
+    summarySavings: 'المساحة الموفرة',
+    addMoreFiles: 'إضافة المزيد',
+    previewAction: 'معاينة وفحص',
+
+    // Preview Modal
+    previewModalTitle: 'فحص ومعاينة الصورة',
+    originalFile: 'الملف الأصلي',
+    convertedFile: 'المخرج المحول',
+    resolutionLabel: 'الدقة',
+    fileSizeLabel: 'حجم الملف',
+    privacyAuditLabel: 'فحص الخصوصية',
+    gpsScrubbedStatus: 'تم تنظيف إحداثيات GPS وبيانات الكاميرا',
+    downloadCurrentItem: 'تحميل الملف المحول',
+    close: 'إغلاق',
+
     // PDF Options
     pdfPageSize: 'حجم الصفحة',
     pageSizeA4: 'A4 (210×297 مم)',
@@ -212,10 +282,10 @@ export const translations = {
     pwaIosStep2: 'مرر للأسفل واضغط "إضافة إلى الشاشة الرئيسية".',
     pwaFirefoxDesktopTitle: 'ثبّت سناب هيك',
     pwaFirefoxDesktopStep1: 'ابحث في الجهة اليمنى من شريط العنوان عن أيقونة التثبيت — صندوق به سهم لأسفل.',
-    pwaFirefoxDesktopStep2: 'انقر على تلك الأيقونة لفتح نافذة التثبيت.',
-    pwaFirefoxDesktopStep3: 'انقر على "تثبيت" في النافذة المنبثقة لإضافة SnapHeic إلى سطح المكتب.',
+    pwaFirefoxDesktopStep2: 'Click that icon to open the install prompt.',
+    pwaFirefoxDesktopStep3: 'Click "Install" in the popup to add SnapHeic to your desktop.',
     pwaFirefoxMobileTitle: 'ثبّت سناب هيك',
-    pwaFirefoxMobileStep: 'اضغط على قائمة النقاط الثلاث (⋮) واختر "تثبيت".',
+    pwaFirefoxMobileStep: 'Tap the three-dot menu (⋮) and select "Install".',
     pwaSafariDesktopTitle: 'ثبّت سناب هيك',
     pwaSafariDesktopStep: 'انتقل إلى ملف ← إضافة إلى Dock.',
     pwaSafariMobileTitle: 'ثبّت سناب هيك',
