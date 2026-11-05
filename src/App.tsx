@@ -81,7 +81,26 @@ const SnapHeicLogo = ({ size = 36 }: { size?: number }) => (
 );
 
 export default function App() {
-  const [lang, setLang] = useState<Language>('en');
+  const [lang, setLang] = useState<Language>(() => {
+    const saved = typeof window !== 'undefined' ? localStorage.getItem('snapheic_lang') : null;
+    return (saved === 'en' || saved === 'ar') ? saved : 'ar';
+  });
+
+  const changeLang = (newLang: Language) => {
+    setLang(newLang);
+    try {
+      localStorage.setItem('snapheic_lang', newLang);
+    } catch {
+      // localStorage may be disabled
+    }
+  };
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.lang = lang;
+      document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    }
+  }, [lang]);
   const t = translations[lang];
   const [view, setView] = useState<View>('converter');
   const [appMode, setAppMode] = useState<AppMode>('converter');
@@ -476,13 +495,13 @@ export default function App() {
 
           <div className="flex items-center gap-2">
             <button 
-              onClick={() => setLang('en')} 
+              onClick={() => changeLang('en')} 
               className={`px-3 py-1.5 text-[10px] rounded-md font-mono border transition-all active:scale-[0.98] ${lang === 'en' ? 'bg-[#0B0B0C] text-[#F4F1EA] border-[#0B0B0C] shadow-xs' : 'border-[#0B0B0C]/15 hover:border-[#0B0B0C]/40 text-[#0B0B0C]/70 hover:text-[#0B0B0C] bg-white'}`}
             >
               EN
             </button>
             <button 
-              onClick={() => setLang('ar')} 
+              onClick={() => changeLang('ar')} 
               className={`px-3 py-1.5 text-[10px] rounded-md font-mono border transition-all active:scale-[0.98] ${lang === 'ar' ? 'bg-[#0B0B0C] text-[#F4F1EA] border-[#0B0B0C] shadow-xs' : 'border-[#0B0B0C]/15 hover:border-[#0B0B0C]/40 text-[#0B0B0C]/70 hover:text-[#0B0B0C] bg-white'}`}
             >
               AR

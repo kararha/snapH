@@ -15,3 +15,4 @@ fs.writeFileSync(path.join(dir, 'sample1.png'), pngBuffer);
 fs.writeFileSync(path.join(dir, 'sample2.png'), pngBuffer);
 
 console.log('Fixtures generated in', dir);
+
